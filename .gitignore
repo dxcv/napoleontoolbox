@@ -1,0 +1,24 @@
+# Files to ignore
+setup.cfg
+.DS_Store
+# Extensions to ignore
+napoleon/napoleon.egg-info/*
+data/*
+.idea/*
+*.so
+*.html
+*.ipynb_checkpoints
+*.pyc
+
+# Folders to ignore
+env/
+build/
+fynance.egg-info/
+dist/
+old_scripts/
+dev/
+.DS_Store
+# Cache to ignore
+__pycache__/
+.cache/
+.pytest_cache/
