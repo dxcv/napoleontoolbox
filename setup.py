@@ -104,9 +104,9 @@ else:
 
 setup(
     name='napoleontoolbox',
-    version='0.0.0',
+    version='0.0.1',
     packages=find_packages(),
-    download_url='https://github.com/stef564/napoleontoolbox/archive/0.0.0.tar.gz',
+    download_url='https://github.com/stef564/napoleontoolbox/archive/0.0.1.tar.gz',
     author='Napoleon Group',
     author_email='dsi@napoleonx.ai',
     description='Dashboard for financial market data',
