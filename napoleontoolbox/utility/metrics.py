@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf-8
+
 """ Metric functons used in financial analysis. """
 
 # Built-in packages

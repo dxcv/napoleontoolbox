@@ -1,0 +1,24 @@
+Metadata-Version: 1.1
+Name: napoleontoolbox
+Version: 0.0.0
+Summary: Dashboard for financial market data
+Home-page: UNKNOWN
+Author: Napoleon Group
+Author-email: dsi@napoleonx.ai
+License: MIT
+Download-URL: https://github.com/stef564/napoleontoolbox/archive/0.0.0.tar.gz
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Financial and Insurance Industry
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Cython
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Office/Business :: Financial
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence

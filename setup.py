@@ -83,13 +83,13 @@ else:
 
 extensions = [
     Extension(
-        'utility.metrics_cy',
-        ['utility/metrics_cy' + ext],
+        'napoleontoolbox.utility.metrics_cy',
+        ['napoleontoolbox/utility/metrics_cy' + ext],
         include_dirs=[numpy.get_include(), '.']
     ),
     Extension(
-        'utility.momentums_cy',
-        ['utility/momentums_cy' + ext],
+        'napoleontoolbox.utility.momentums_cy',
+        ['napoleontoolbox/utility/momentums_cy' + ext],
         include_dirs=[numpy.get_include(), '.']
     )
 ]

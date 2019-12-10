@@ -11,7 +11,7 @@ import warnings
 import numpy as np
 
 # Local packages
-from .momentums_cy import *
+from utility.momentums_cy import *
 
 __all__ = [
     'sma', 'wma', 'ema', 'smstd', 'wmstd', 'emstd',
