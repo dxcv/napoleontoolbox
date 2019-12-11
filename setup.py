@@ -148,9 +148,9 @@ if ext_modules is None :
 
 setup(
     name='napoleontoolbox',
-    version='0.0.8',
+    version='0.0.9',
     packages=find_packages(),
-    download_url='https://github.com/stef564/napoleontoolbox/archive/0.0.7.tar.gz',
+    download_url='https://github.com/stef564/napoleontoolbox/archive/0.0.9.tar.gz',
     author='Napoleon Group',
     author_email='dsi@napoleonx.ai',
     description='Dashboard for financial market data',

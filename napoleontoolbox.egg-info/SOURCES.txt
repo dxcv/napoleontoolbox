@@ -43,8 +43,5 @@ napoleontoolbox/tools/utils.py
 napoleontoolbox/utility/__init__.py
 napoleontoolbox/utility/indicators.py
 napoleontoolbox/utility/metrics.py
-napoleontoolbox/utility/metrics_cy.c
-napoleontoolbox/utility/momentums.py
-napoleontoolbox/utility/momentums_cy.c
 napoleontoolbox/utility/money_management.py
 napoleontoolbox/utility/weights.py

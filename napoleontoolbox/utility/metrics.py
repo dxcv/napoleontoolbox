@@ -7,19 +7,9 @@
 
 # External packages
 import numpy as np
+import math
 
 # Internal packages
-from utility.metrics_cy import calmar_cy, drawdown_cy, mdd_cy, sharpe_cy
-from utility.metrics_cy import log_sharpe_cy, roll_mdd_cy, roll_mad_cy
-from utility.momentums_cy import smstd_cy
-from utility.momentums import sma, ema, wma, smstd, emstd, wmstd
-
-# TODO:
-# - Append window size on rolling calmar
-# - Append window size on rolling MDD
-# - Append performance
-# - Append rolling performance
-# - verify and fix error to perf_strat, perf_returns, perf_index
 
 
 __all__ = [
@@ -186,8 +176,14 @@ def calmar(series, period=252):
 
     """
     series = np.asarray(series, dtype=np.float64).flatten()
+    ret = series[-1] / series[0]
+    annual_return = np.sign(ret) * np.float_power(
+        np.abs(ret), period / len(series), dtype=np.float64) - 1.
+    # Compute MaxDrawDown
+    max_dd = mdd(series)
 
-    return calmar_cy(series, period=float(period))
+    return annual_return / max_dd
+
 
 
 def diversified_ratio(series, w=None, std_method='std'):
@@ -462,7 +458,7 @@ def perf_strat(underlying, signals=None, log=False, base=100.,
     return perf_returns(series, log=log, base=base)
 
 
-def sharpe(series, period=252, log=False):
+def sharpe(series, period=252):
     r""" Compute the Sharpe ratio [6]_.
 
     Notes
@@ -504,374 +500,12 @@ def sharpe(series, period=252, log=False):
     mdd, calmar, drawdown, roll_sharpe
 
     """
+
     series = np.asarray(series, dtype=np.float64).flatten()
+    ret_vect = series[1:] / series[:-1] - 1.
+    return math.sqrt(period)*np.mean(ret_vect)/np.std(ret_vect, dtype=np.float64)
 
-    if log:
-        return log_sharpe_cy(series, period=float(period))
 
-    return sharpe_cy(series, period=float(period))
-
-
-def z_score(series, kind_ma='sma', **kwargs):
-    r""" Compute Z-score function.
-
-    Notes
-    -----
-    Compute the z-score function for a specific average and standard deviation
-    function such that:
-
-    .. math:: z = \frac{series_t - \mu_t}{\sigma_t}
-
-    Where :math:`\mu_t` is the average and :math:`\sigma_t` is the standard
-    deviation.
-
-    Parameters
-    ----------
-    series : np.ndarray[np.float64, ndim=1]
-        Series of index, prices or returns.
-    kind_ma : {'ema', 'sma', 'wma'}
-        Kind of moving average/standard deviation, default is 'sma'.
-        - Exponential moving average if 'ema'.
-        - Simple moving average if 'sma'.
-        - Weighted moving average if 'wma'.
-    **kwargs
-        Any parameters for the moving average function.
-
-    Returns
-    -------
-    float
-        Value of Z-score.
-
-    Examples
-    --------
-    >>> series = np.array([70, 100, 80, 120, 160, 80])
-    >>> z_score(series, kind_ma='ema')
-    -0.009636022213064485
-    >>> z_score(series, lags=3)
-    -1.224744871391589
-
-    See Also
-    --------
-    roll_z_score, mdd, calmar, drawdown, sharpe
-
-    """
-    if kind_ma.lower() == 'wma':
-        ma_f = wma
-        std_f = wmstd
-
-    elif kind_ma.lower() == 'sma':
-        ma_f = sma
-        std_f = smstd
-
-    elif kind_ma.lower() == 'ema':
-        ma_f = ema
-        std_f = emstd
-
-    else:
-        raise ValueError('Unknown kind_ma: {}'.format(kind_ma))
-
-    m = ma_f(series, **kwargs)
-    s = std_f(series, **kwargs)
-    s[s == 0.] = 1.
-    z = (series - m) / s
-
-    return z[-1]
-
-
-# =========================================================================== #
-#                               Rolling metrics                               #
-# =========================================================================== #
-
-# TODO : rolling perf metric
-# TODO : rolling diversified ratio
-
-def roll_calmar(series, period=252.):
-    """ Compute the rolling Calmar ratio [1]_.
-
-    It is the compouned annual return over the rolling Maximum DrawDown.
-
-    Parameters
-    ----------
-    series : np.ndarray[np.float64, ndim=1]
-        Time series (price, performance or index).
-    period : int, optional
-        Number of period per year, default is 252 (trading days).
-    win : int, optional /! NOT YET WORKING /!
-        Size of the rolling window. If less of two, rolling calmar is
-        compute on all the past. Default is 0.
-
-    Returns
-    -------
-    np.ndarray[np.float64, ndim=1]
-        Series of rolling Calmar ratio.
-
-    References
-    ----------
-    .. [1] https://en.wikipedia.org/wiki/Calmar_ratio
-
-    Examples
-    --------
-    Assume a monthly series of prices:
-
-    >>> series = np.array([70, 100, 80, 120, 160, 80])
-    >>> roll_calmar(series, period=12)
-    array([ 0.        ,  0.        ,  3.52977926, 20.18950437, 31.35989887,
-            0.6122449 ])
-
-    See Also
-    --------
-    roll_mdd, roll_sharpe, calmar
-
-    """
-    # Set variables
-    series = np.asarray(series, dtype=np.float64).flatten()
-    T = series.size
-    t = np.arange(1., T + 1., dtype=np.float64)
-
-    # Compute roll Returns
-    ret = series / series[0]
-    annual_return = np.sign(ret) * np.float_power(
-        np.abs(ret), period / t, dtype=np.float64) - 1.
-
-    # Compute roll MaxDrawDown
-    roll_maxdd = roll_mdd_cy(series)
-
-    # Compute roll calmar
-    roll_cal = np.zeros([T])
-    not_null = roll_maxdd != 0.
-    roll_cal[not_null] = annual_return[not_null] / roll_maxdd[not_null]
-
-    return roll_cal
-
-
-def roll_mad(series, win=0):
-    """ Compute rolling Mean Absolut Deviation.
-
-    Compute the moving average of the absolute value of the distance to the
-    moving average [4]_.
-
-    Parameters
-    ----------
-    series : np.ndarray[np.float64, ndim=1]
-        Time series (price, performance or index).
-
-    Returns
-    -------
-    np.ndarray[np.float64, ndim=1]
-        Series of mean absolute deviation.
-
-    References
-    ----------
-    .. [4] https://en.wikipedia.org/wiki/Average_absolute_deviation
-
-    Examples
-    --------
-    >>> series = np.array([70., 100., 90., 110., 150., 80.])
-    >>> roll_mad(series)
-    array([ 0.        , 15.        , 11.11111111, 12.5       , 20.8       ,
-           20.        ])
-
-    See Also
-    --------
-    mad
-
-    """
-    series = np.asarray(series, dtype=np.float64).flatten()
-
-    if win < 2:
-        win = series.size
-
-    return roll_mad_cy(series, win=int(win))
-
-
-def roll_mdd(series):
-    """ Compute the rolling maximum drwdown.
-
-    Where drawdown is the measure of the decline from a historical peak in
-    some variable [5]_ (typically the cumulative profit or total open equity
-    of a financial trading strategy).
-
-    Parameters
-    ----------
-    series : np.ndarray[np.float64, ndim=1]
-        Time series (price, performance or index).
-    win : int, optional /! NOT YET WORKING /!
-        Size of the rolling window. If less of two, rolling Max DrawDown is
-        compute on all the past. Default is 0.
-
-    Returns
-    -------
-    np.ndrray[np.float64, ndim=1]
-        Series of rolling Maximum DrawDown.
-
-    References
-    ----------
-    .. [5] https://www.investopedia.com/terms/m/maximum-drawdown-mdd.asp
-
-    Examples
-    --------
-    >>> series = np.array([70, 100, 80, 120, 160, 80])
-    >>> roll_mdd(series)
-    array([0. , 0. , 0.2, 0.2, 0.2, 0.5])
-
-    See Also
-    --------
-    mdd, roll_calmar, roll_sharpe, drawdown
-
-    """
-    series = np.asarray(series, dtype=np.float64).flatten()
-
-    return roll_mdd_cy(series)
-
-
-def roll_sharpe(series, period=252, win=0, cap=True):
-    """ Compute rolling sharpe ratio [6]_.
-
-    It is the rolling compouned annual returns divided by rolling annual
-    volatility.
-
-    Parameters
-    ----------
-    series : np.ndarray[dtype=np.float64, ndim=1]
-        Financial series of prices or indexed values.
-    period : int, optional
-        Number of period in a year, default is 252 (trading days).
-    win : int, optional
-        Size of the rolling window. If less of two, rolling sharpe is
-        compute on all the past. Default is 0.
-    cap : bool, optional
-        Cap extram values (some time due to small size window), default
-        is True.
-
-    Returns
-    -------
-    np.ndarray[np.float64, ndim=1]
-        Serires of rolling Sharpe ratio.
-
-    References
-    ----------
-    .. [6] https://en.wikipedia.org/wiki/Sharpe_ratio
-
-    Examples
-    --------
-    Assume a monthly series of prices:
-
-    >>> series = np.array([70, 100, 80, 120, 160, 80])
-    >>> roll_sharpe(series, period=12)
-    array([0.        , 0.        , 0.77721579, 3.99243019, 6.754557  ,
-           0.24475518])
-
-    See Also
-    --------
-    roll_calmar, sharpe, roll_mdd
-
-    """
-    # Setting inputs
-    series = np.asarray(series, dtype=np.float64).flatten()
-    T = series.size
-    t = np.arange(1., T + 1., dtype=np.float64)
-
-    if win < 2:
-        win = T
-
-    t[t > win] = win + 1.
-    ret = np.zeros([T], dtype=np.float64)
-    ret[1:] = series[1:] / series[:-1] - 1.
-
-    # Compute rolling perf
-    ma = series / series[0]
-    ma[win:] = series[win:] / series[: -win]
-    annual_return = np.sign(ma) * np.float_power(
-        np.abs(ma), period / t, dtype=np.float64) - 1.
-
-    # Compute rolling volatility
-    std = smstd_cy(np.asarray(ret).flatten(), lags=int(win))
-    vol = np.sqrt(period) * std
-
-    # Compute sharpe
-    roll_shar = np.zeros([T])
-    not_null = vol != 0.
-    roll_shar[not_null] = annual_return[not_null] / vol[not_null]
-
-    # Cap extrem value
-    if cap:
-        if win == T:
-            win = T // 3
-
-        s = np.std(roll_shar[win:])
-        m = np.mean(roll_shar[win:])
-        xtrem_val = np.abs(roll_shar[:win]) > s * m
-        roll_shar[:win][xtrem_val] = 0.
-
-    return roll_shar
-
-
-def roll_z_score(series, kind_ma='sma', **kwargs):
-    r""" Compute vector of rolling/moving Z-score function.
-
-    Notes
-    -----
-    Compute for each observation the z-score function for a specific moving
-    average function such that:
-
-    .. math:: z = \frac{seres - \mu_t}{\sigma_t}
-
-    Where :math:`\mu_t` is the moving average and :math:`\sigma_t` is the
-    moving standard deviation.
-
-    Parameters
-    ----------
-    series : np.ndarray[np.float64, ndim=1]
-        Series of index, prices or returns.
-    kind_ma : {'ema', 'sma', 'wma'}
-        Kind of moving average/standard deviation, default is 'sma'.
-        - Exponential moving average if 'ema'.
-        - Simple moving average if 'sma'.
-        - Weighted moving average if 'wma'.
-    **kwargs
-        Any parameters for the moving average function.
-
-    Returns
-    -------
-    np.ndarray[np.float64, ndim=1]
-        Vector of Z-score at each period.
-
-    Examples
-    --------
-    >>> series = np.array([70, 100, 80, 120, 160, 80])
-    >>> roll_z_score(series, kind_ma='ema')
-    array([ 0.        ,  3.83753384,  1.04129457,  3.27008748,  3.23259291,
-           -0.00963602])
-    >>> roll_z_score(series, lags=3)
-    array([ 0.        ,  1.        , -0.26726124,  1.22474487,  1.22474487,
-           -1.22474487])
-
-    See Also
-    --------
-    z_score, roll_mdd, roll_calmar, roll_mad, roll_sharpe
-
-    """
-    if kind_ma.lower() == 'wma':
-        ma_f = wma
-        std_f = wmstd
-
-    elif kind_ma.lower() == 'sma':
-        ma_f = sma
-        std_f = smstd
-
-    elif kind_ma.lower() == 'ema':
-        ma_f = ema
-        std_f = emstd
-
-    else:
-        raise ValueError('Unknown kind_ma: {}'.format(kind_ma))
-
-    m = ma_f(series, **kwargs)
-    s = std_f(series, **kwargs)
-    s[s == 0.] = 1.
-    z = (series - m) / s
-
-    return z
 
 
 if __name__ == '__main__':
