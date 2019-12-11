@@ -53,7 +53,9 @@ def iso_vol(series, target_vol=0.20, leverage=1., period=252, half_life=11):
     # Compute squared daily return vector
     ret2 = np.square(series[:-1] / series[1:] - 1)
     # Compute volatility vector
-    vol = np.sqrt(period * ema(ret2, lags=half_life))
+    #ema_short = ret2.ewm(span=half_life, adjust=False).mean()
+    #vol = np.sqrt(period * ema(ret2, lags=half_life))
+    vol = 0
     vol[vol <= 0.] = 1e-8
     # Compute iso-vol coefficient
     iv[2:] = target_vol / vol[:-1]

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+
 """ Metric functons used in financial analysis. """
 
 # Built-in packages
@@ -507,10 +508,3 @@ def sharpe(series, period=252):
     return math.sqrt(period)*np.mean(ret_vect)/np.std(ret_vect, dtype=np.float64)
 
 
-
-
-if __name__ == '__main__':
-
-    import doctest
-
-    doctest.testmod()
