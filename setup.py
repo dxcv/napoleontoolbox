@@ -85,78 +85,18 @@ else:
 
 
 
-ext_modules = None
-print('deploying from pip')
-for dirname, dirnames, filenames in os.walk('.'):
-    # print path to all subdirectories first.
-    for subdirname in dirnames:
-        print(os.path.join(dirname, subdirname))
-
-    # print path to all filenames.
-    for filename in filenames:
-        print(os.path.join(dirname, filename))
-
-print('exploratory done')
-
-try:
-    extensions = [
-        Extension(
-            'napoleontoolbox.utility.metrics_cy',
-            ['napoleontoolbox/utility/metrics_cy' + ext],
-            include_dirs=[numpy.get_include(), '.']
-        ),
-        Extension(
-            'napoleontoolbox.utility.momentums_cy',
-            ['napoleontoolbox/utility/momentums_cy' + ext],
-            include_dirs=[numpy.get_include(), '.']
-        )
-    ]
-    if USE_CYTHON or USE_CYTHON == 'auto':
-        ext_modules = cythonize(extensions, annotate=True)
-
-    else:
-        ext_modules = extensions
-
-except ValueError as e :
-    print(str(e))
-
-
-if ext_modules is None :
-    try:
-        extensions = [
-            Extension(
-                'utility.metrics_cy',
-                ['utility/metrics_cy' + ext],
-                include_dirs=[numpy.get_include(), '.']
-            ),
-            Extension(
-                'utility.momentums_cy',
-                ['utility/momentums_cy' + ext],
-                include_dirs=[numpy.get_include(), '.']
-            )
-        ]
-        if USE_CYTHON or USE_CYTHON == 'auto':
-            ext_modules = cythonize(extensions, annotate=True)
-
-        else:
-            ext_modules = extensions
-
-    except ValueError as e:
-        print(str(e))
-
 
 
 setup(
     name='napoleontoolbox',
-    version='0.0.9',
+    version='0.1.0',
     packages=find_packages(),
-    download_url='https://github.com/stef564/napoleontoolbox/archive/0.0.9.tar.gz',
+    download_url='https://github.com/stef564/napoleontoolbox/archive/0.1.0.tar.gz',
     author='Napoleon Group',
     author_email='dsi@napoleonx.ai',
     description='Dashboard for financial market data',
     license='MIT',
     cmdclass=cmdclass,
-    ext_modules=ext_modules,
     install_requires=build_requires,
     classifiers=CLASSIFIERS,
 )

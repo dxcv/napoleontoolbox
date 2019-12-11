@@ -14,9 +14,8 @@ import math
 
 __all__ = [
     'accuracy', 'annual_return', 'annual_volatility', 'calmar',
-    'diversified_ratio', 'drawdown', 'mad', 'mdd', 'roll_calmar', 'roll_mad',
-    'roll_mdd', 'roll_sharpe', 'roll_z_score', 'sharpe', 'perf_index',
-    'perf_returns', 'z_score',
+    'diversified_ratio', 'drawdown', 'mad', 'mdd', 'sharpe', 'perf_index',
+    'perf_returns',
 ]
 
 
@@ -266,9 +265,11 @@ def drawdown(series):
     mdd, calmar, sharpe, roll_mdd
 
     """
-    series = np.asarray(series, dtype=np.float64).flatten()
 
-    return drawdown_cy(series)
+    series = np.asarray(series, dtype=np.float64).flatten()
+    maximums = np.maximum.accumulate(series, dtype=np.float64)
+
+    return 1. - series / maximums
 
 
 def mad(series):
@@ -338,7 +339,7 @@ def mdd(series):
     """
     series = np.asarray(series, dtype=np.float64).flatten()
 
-    return mdd_cy(series)
+    return mdd(series)
 
 
 def perf_index(series, base=100.):
