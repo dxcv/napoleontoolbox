@@ -81,24 +81,53 @@ if 'build_ext' in sys.argv[1:] or USE_CYTHON or USE_CYTHON == 'auto':
 else:
     cmdclass = {}
 
-extensions = [
-    Extension(
-        'napoleontoolbox.utility.metrics_cy',
-        ['napoleontoolbox/utility/metrics_cy' + ext],
-        include_dirs=[numpy.get_include(), '.']
-    ),
-    Extension(
-        'napoleontoolbox.utility.momentums_cy',
-        ['napoleontoolbox/utility/momentums_cy' + ext],
-        include_dirs=[numpy.get_include(), '.']
-    )
-]
 
-if USE_CYTHON or USE_CYTHON == 'auto':
-    ext_modules = cythonize(extensions, annotate=True)
 
-else:
-    ext_modules = extensions
+
+
+
+try:
+    extensions = [
+        Extension(
+            'napoleontoolbox.utility.metrics_cy',
+            ['napoleontoolbox/utility/metrics_cy' + ext],
+            include_dirs=[numpy.get_include(), '.']
+        ),
+        Extension(
+            'napoleontoolbox.utility.momentums_cy',
+            ['napoleontoolbox/utility/momentums_cy' + ext],
+            include_dirs=[numpy.get_include(), '.']
+        )
+    ]
+    if USE_CYTHON or USE_CYTHON == 'auto':
+        ext_modules = cythonize(extensions, annotate=True)
+
+    else:
+        ext_modules = extensions
+
+except ValueError as e :
+    print(str(e))
+    print('deploying from pip')
+    extensions = [
+        Extension(
+            'utility.metrics_cy',
+            ['utility/metrics_cy' + ext],
+            include_dirs=[numpy.get_include(), '.']
+        ),
+        Extension(
+            'utility.momentums_cy',
+            ['utility/momentums_cy' + ext],
+            include_dirs=[numpy.get_include(), '.']
+        )
+    ]
+    if USE_CYTHON or USE_CYTHON == 'auto':
+        ext_modules = cythonize(extensions, annotate=True)
+
+    else:
+        ext_modules = extensions
+
+
+
 
 
 
