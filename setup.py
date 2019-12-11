@@ -148,7 +148,7 @@ if ext_modules is None :
 
 setup(
     name='napoleontoolbox',
-    version='0.0.7',
+    version='0.0.8',
     packages=find_packages(),
     download_url='https://github.com/stef564/napoleontoolbox/archive/0.0.7.tar.gz',
     author='Napoleon Group',
