@@ -6,6 +6,8 @@ napoleontoolbox.egg-info/SOURCES.txt
 napoleontoolbox.egg-info/dependency_links.txt
 napoleontoolbox.egg-info/requires.txt
 napoleontoolbox.egg-info/top_level.txt
+napoleontoolbox/analyzer/__init__.py
+napoleontoolbox/analyzer/market.py
 napoleontoolbox/backtest/__init__.py
 napoleontoolbox/backtest/dynamic_plot_backtest.py
 napoleontoolbox/backtest/plot_backtest.py
@@ -13,6 +15,11 @@ napoleontoolbox/backtest/plot_tools.py
 napoleontoolbox/backtest/print_stats.py
 napoleontoolbox/boosted_trees/__init__.py
 napoleontoolbox/boosted_trees/roll_lightgbm.py
+napoleontoolbox/connector/__init__.py
+napoleontoolbox/connector/napoleon_connector.py
+napoleontoolbox/display/__init__.py
+napoleontoolbox/display/graph.py
+napoleontoolbox/display/table.py
 napoleontoolbox/neural_net/__init__.py
 napoleontoolbox/neural_net/expanding_roll_multi_layer_perceptron.py
 napoleontoolbox/neural_net/roll_aggregated_multi_neural_networks.py
@@ -25,6 +32,9 @@ napoleontoolbox/neural_net/roll_neural_network.py
 napoleontoolbox/parallel_run/__init__.py
 napoleontoolbox/parallel_run/parallel_launcher.py
 napoleontoolbox/parallel_run/parallel_saver.py
+napoleontoolbox/rebalancing/__init__.py
+napoleontoolbox/rebalancing/allocation.py
+napoleontoolbox/rebalancing/rolling.py
 napoleontoolbox/tools/__init__.py
 napoleontoolbox/tools/analyze_tools.py
 napoleontoolbox/tools/display.py

@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf-8
-# @Author: ArthurBernard
-# @Email: arthur.bernard.92@gmail.com
-# @Date: 2019-09-28 13:58:30
-# @Last modified by: ArthurBernard
-# @Last modified time: 2019-09-28 13:58:51
+
 
 """ Some financial, statistic and econometric tools.
 
