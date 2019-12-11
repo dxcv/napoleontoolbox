@@ -266,10 +266,8 @@ def drawdown(series):
     mdd, calmar, sharpe, roll_mdd
 
     """
-
     series = np.asarray(series, dtype=np.float64).flatten()
     maximums = np.maximum.accumulate(series, dtype=np.float64)
-
     return 1. - series / maximums
 
 
@@ -339,8 +337,7 @@ def mdd(series):
 
     """
     series = np.asarray(series, dtype=np.float64).flatten()
-
-    return mdd(series)
+    return max(drawdown(series))
 
 
 def perf_index(series, base=100.):

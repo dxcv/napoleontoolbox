@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 #import seaborn as sns
 
 # Internal packages
-from neural_net.roll_multi_neural_networks import RollMultiNeuralNet
+from napoleontoolbox.neural_net.roll_multi_neural_networks import RollMultiNeuralNet
 
 # Set plot style
 plt.style.use('seaborn')

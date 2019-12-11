@@ -14,12 +14,12 @@ from scipy.optimize import Bounds, LinearConstraint, minimize
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression
 # Local packages
-from utility import metrics
+from napoleontoolbox.utility import metrics
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
 
-from rebalancing import rolling
+from napoleontoolbox.rebalancing import rolling
 
 
 # TODO : cython

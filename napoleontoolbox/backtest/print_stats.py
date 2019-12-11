@@ -7,7 +7,7 @@
 import numpy as np
 
 # Internal packages
-from utility.metrics import accuracy, sharpe, calmar
+from napoleontoolbox.utility.metrics import accuracy, sharpe, calmar
 
 __all__ = ['set_text_stats']
 

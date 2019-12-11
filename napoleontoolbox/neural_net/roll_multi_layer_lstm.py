@@ -31,11 +31,7 @@ __all__ = ['_RollingBasis', 'RollMultiLayerLSTM']
 
 #!/usr/bin/env python3
 # coding: utf-8
-# @Author: ArthurBernard
-# @Email: arthur.bernard.92@gmail.com
-# @Date: 2019-05-06 20:16:31
-# @Last modified by: ArthurBernard
-# @Last modified time: 2019-09-26 17:10:55
+
 
 """ Basis of neural networks models. """
 

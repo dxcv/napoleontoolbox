@@ -7,7 +7,7 @@
 # Built-in packages
 
 # Third party packages
-from utility import metrics
+from napoleontoolbox.utility import metrics
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -67,7 +67,7 @@ class MarketAnalyzer:
         'calmar': {'f': metrics.calmar, 'p': {'period': 252}},
         'annual_return': {'f': metrics.annual_return, 'p': {'period': 252}},
         'annual_volatility': {'f': metrics.annual_volatility, 'p': {'period': 252}},
-        'z_score': {'f': metrics.z_score, 'p': {'lags': 63}},
+        #'z_score': {'f': metrics.z_score, 'p': {'lags': 63}},
         'mdd': {'f': metrics.mdd, 'p': {}},
     }
     metrics = []

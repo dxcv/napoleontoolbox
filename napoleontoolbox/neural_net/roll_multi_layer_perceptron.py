@@ -20,7 +20,7 @@ import torch
 # Local packages
 # from fynance.models.xgb import XGBData
 
-from backtest.dynamic_plot_backtest import DynaPlotBackTest
+from napoleontoolbox.backtest.dynamic_plot_backtest import DynaPlotBackTest
 
 import shap
 
@@ -32,11 +32,7 @@ __all__ = ['_RollingBasis', 'RollMultiLayerPerceptron']
 
 #!/usr/bin/env python3
 # coding: utf-8
-# @Author: ArthurBernard
-# @Email: arthur.bernard.92@gmail.com
-# @Date: 2019-05-06 20:16:31
-# @Last modified by: ArthurBernard
-# @Last modified time: 2019-09-26 17:10:55
+
 
 """ Basis of neural networks models. """
 

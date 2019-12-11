@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 
 # Local packages
-from backtest.plot_backtest import PlotBackTest
+from napoleontoolbox.backtest.plot_backtest import PlotBackTest
 
 # Set plot style
 plt.style.use('seaborn')

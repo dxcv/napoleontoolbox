@@ -4,7 +4,7 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-from analyzer import market
+from napoleontoolbox.analyzer import market
 
 def rand_color_palette(N):
     col = []

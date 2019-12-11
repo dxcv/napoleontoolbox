@@ -19,7 +19,7 @@ import torch
 # Local packages
 # from fynance.models.xgb import XGBData
 
-from backtest.dynamic_plot_backtest import DynaPlotBackTest
+from napoleontoolbox.backtest.dynamic_plot_backtest import DynaPlotBackTest
 
 # Set plot style
 plt.style.use('seaborn')

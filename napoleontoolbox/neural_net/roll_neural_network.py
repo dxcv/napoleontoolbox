@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 # import seaborn as sns
 
 # Local packages
-from backtest.dynamic_plot_backtest import DynaPlotBackTest
+from napoleontoolbox.backtest.dynamic_plot_backtest import DynaPlotBackTest
 
 # Set plot style
 plt.style.use('seaborn')

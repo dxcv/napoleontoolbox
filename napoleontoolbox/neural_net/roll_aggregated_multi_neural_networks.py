@@ -9,8 +9,8 @@ from matplotlib import pyplot as plt
 # import seaborn as sns
 
 # Internal packages
-from backtest.dynamic_plot_backtest import DynaPlotBackTest
-from neural_net.roll_multi_neural_networks import RollMultiNeuralNet
+from napoleontoolbox.backtest.dynamic_plot_backtest import DynaPlotBackTest
+from napoleontoolbox.neural_net.roll_multi_neural_networks import RollMultiNeuralNet
 
 # Set plot style
 plt.style.use('seaborn')

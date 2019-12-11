@@ -9,8 +9,7 @@ from matplotlib import pyplot as plt
 #import seaborn as sns
 
 # Internal packages
-#from fynance.backtest.dynamic_plot_backtest import DynaPlotBackTest
-from neural_net.roll_neural_network import RollNeuralNet
+from napoleontoolbox.neural_net.roll_neural_network import RollNeuralNet
 
 # Set plot style
 plt.style.use('seaborn')

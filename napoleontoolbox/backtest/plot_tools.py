@@ -9,9 +9,9 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 
 # Internal packages
-from utility.money_management import iso_vol
-from utility.metrics import drawdown, roll_sharpe
-from backtest.print_stats import set_text_stats
+from napoleontoolbox.utility.money_management import iso_vol
+from napoleontoolbox.utility.metrics import drawdown, roll_sharpe
+from napoleontoolbox.backtest.print_stats import set_text_stats
 
 # Set plot style
 plt.style.use('seaborn')
