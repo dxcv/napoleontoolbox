@@ -90,7 +90,7 @@ class MarketAnalyzer:
         # Set metrics attribute
         # TODO : available_metrics
         self.set_metric('annual_return', 'annual_volatility', 'sharpe',
-                        'calmar', 'mdd', 'z_score')
+                        'calmar', 'mdd')#, 'z_score')
 
     def _set_days_per_year(self):
         # Compute the average of days per year
