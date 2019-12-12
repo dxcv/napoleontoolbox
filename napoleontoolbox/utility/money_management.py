@@ -10,7 +10,6 @@
 import numpy as np
 
 # Internal packages
-from utility.momentums import ema
 
 __all__ = ['iso_vol']
 
@@ -55,6 +54,7 @@ def iso_vol(series, target_vol=0.20, leverage=1., period=252, half_life=11):
     # Compute volatility vector
     #ema_short = ret2.ewm(span=half_life, adjust=False).mean()
     #vol = np.sqrt(period * ema(ret2, lags=half_life))
+    # @todo : to modify
     vol = 0
     vol[vol <= 0.] = 1e-8
     # Compute iso-vol coefficient

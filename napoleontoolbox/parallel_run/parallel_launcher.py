@@ -67,6 +67,7 @@ class ParalleLauncher():
             toRun(*meArg)
 
     def instantiateTable(self):
+        sqliteConnection = None
         try:
             sqliteConnection = sqlite3.connect(self.db_path)
             sqlite_create_table_query = '''CREATE TABLE parallel_run (
@@ -85,6 +86,7 @@ class ParalleLauncher():
                 print("sqlite connection is closed")
 
     def addRun(self,run):
+        sqliteConnection = None
         try:
             sqliteConnection = sqlite3.connect(self.db_path)
             sqlite_create_table_query = 'alter table parallel_run add column ' + run + ' real'
@@ -103,6 +105,7 @@ class ParalleLauncher():
                 print("sqlite connection is closed")  # adding the column
 
     def insertResults(self, run, values):
+        sqliteConnection = None
         try:
             success = True
             sqliteConnection = sqlite3.connect(self.db_path)
@@ -124,9 +127,10 @@ class ParalleLauncher():
         return success
 
     def updateResults(self, run, values):
-        sqliteConnection = sqlite3.connect(self.db_path)
-        cursor = sqliteConnection.cursor()
+        sqliteConnection = None
         try:
+            sqliteConnection = sqlite3.connect(self.db_path)
+            cursor = sqliteConnection.cursor()
             for i, v in values.iteritems():
                 print("Connected to SQLite")
                 sqlite_update_query = """UPDATE 'parallel_run' set '""" + run + """' = '""" + str(
@@ -143,6 +147,7 @@ class ParalleLauncher():
 
 
     def addRunWeights(self,run, weights_df):
+        sqliteConnection = None
         try:
             table_name = run + '_weight'
             sqliteConnection = sqlite3.connect(self.db_path)
@@ -168,6 +173,7 @@ class ParalleLauncher():
         self.addRunWeights(run, weights_df)
 
     def datesCount(self):
+        sqliteConnection = None
         try:
             sqliteConnection = sqlite3.connect(self.db_path, timeout=20)
             cursor = sqliteConnection.cursor()
@@ -187,6 +193,7 @@ class ParalleLauncher():
 
 
     def getAllRuns(self):
+        sqliteConnection = None
         try:
             sqliteConnection = sqlite3.connect(self.db_path, timeout=20)
             cursor = sqliteConnection.cursor()
@@ -210,8 +217,12 @@ class ParalleLauncher():
     def analyzeRunResults(self, run):
         runs = self.getAllRuns()
         results_df = None
+
         if run not in runs :
             return results_df
+
+        sqliteConnection = None
+
         try:
             sqliteConnection = sqlite3.connect(self.db_path, timeout=20)
             sqlite_select_run_query = """SELECT effective_date, """+run+""" from parallel_run order by effective_date asc"""
@@ -230,6 +241,9 @@ class ParalleLauncher():
             runs = ','.join(runs)
         else :
             runs = runs[0]
+
+        sqliteConnection = None
+
         try:
             sqliteConnection = sqlite3.connect(self.db_path, timeout=20)
             sqlite_select_run_query = """SELECT effective_date, """+runs+""" from parallel_run order by effective_date asc"""
