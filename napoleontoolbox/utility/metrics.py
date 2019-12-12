@@ -9,6 +9,7 @@
 # External packages
 import numpy as np
 import math
+import pandas as pd
 
 # Internal packages
 
@@ -504,4 +505,7 @@ def sharpe(series, period=252):
     ret_vect = series[1:] / series[:-1] - 1.
     return math.sqrt(period)*np.mean(ret_vect)/np.std(ret_vect, dtype=np.float64)
 
-
+def roll_sharpe(series, period=252, win=0, cap=True):
+    rollingSharpe = lambda rets : sharpe(rets, period)
+    rolledSeries = pd.Series(series).rolling(win).apply(rollingSharpe)
+    return rolledSeries.values
