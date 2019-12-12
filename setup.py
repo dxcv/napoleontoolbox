@@ -51,52 +51,19 @@ build_requires = [
     'seaborn>=0.9.0',
 ]
 
-if USE_CYTHON or USE_CYTHON == 'auto':
-    try:
-        from Cython.Build import cythonize
-        from Cython.Distutils import build_ext
-
-        ext = '.pyx'
-        print('Using cython.')
-        USE_CYTHON = True
-
-    except ImportError:
-        if not USE_CYTHON == 'auto':
-            print("If USE_CYTHON is set to True, Cython is required to",
-                  "compile fynance. Please install Cython or don't set",
-                  "USE_CYTHON to True.")
-
-            raise ImportError
-
-        else:
-            print('Not using cython.')
-            ext = '.c'
-            USE_CYTHON = False
-
-else:
-    ext = '.c'
-
-if 'build_ext' in sys.argv[1:] or USE_CYTHON or USE_CYTHON == 'auto':
-    cmdclass = {'build_ext': build_ext}
-
-else:
-    cmdclass = {}
-
-
 
 
 
 
 setup(
     name='napoleontoolbox',
-    version='0.1.2',
+    version='0.1.3',
     packages=find_packages(),
-    download_url='https://github.com/stef564/napoleontoolbox/archive/0.1.2.tar.gz',
+    download_url='https://github.com/stef564/napoleontoolbox/archive/0.1.3.tar.gz',
     author='Napoleon Group',
     author_email='dsi@napoleonx.ai',
     description='Dashboard for financial market data',
     license='MIT',
-    cmdclass=cmdclass,
     install_requires=build_requires,
     classifiers=CLASSIFIERS,
 )

@@ -15,8 +15,8 @@ from IPython.display import display
 from matplotlib import pyplot as plt
 
 # Local packages
-from tools.time_tools import _parse_date, parser_date
-from tools.analyze_tools import roll_corr
+from napoleontoolbox.tools.time_tools import _parse_date, parser_date
+from napoleontoolbox.tools.analyze_tools import roll_corr
 
 __all__ = ['MarketAnalyzer']
 
