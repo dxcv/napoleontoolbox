@@ -44,3 +44,5 @@ napoleontoolbox/utility/__init__.py
 napoleontoolbox/utility/metrics.py
 napoleontoolbox/utility/money_management.py
 napoleontoolbox/utility/weights.py
+napoleontoolbox/widget/__init__.py
+napoleontoolbox/widget/figure.py
