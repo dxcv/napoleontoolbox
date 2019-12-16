@@ -54,7 +54,7 @@ build_requires = [
 
 setup(
     name='napoleontoolbox',
-    version='0.2.3',
+    version='0.2.4',
     packages=find_packages(),
     download_url='https://github.com/stef564/napoleontoolbox/archive/0.2.3.tar.gz',
     author='Napoleon Group',

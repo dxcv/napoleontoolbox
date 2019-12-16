@@ -94,9 +94,10 @@ class MarketAnalyzer:
 
     def _set_days_per_year(self):
         # Compute the average of days per year
-        self.n_day_per_year = int(
-            self.idx.size * 365 / (self.idx[-1] - self.idx[0]).days
-        )
+        #self.n_day_per_year = int(
+        #    self.idx.size * 365 / (self.idx[-1] - self.idx[0]).days
+        #)
+        self.n_day_per_year = 252
         # t = self.df.shape[0]
         # Update parameters of parser_metrics
         for m in self.parser_metrics.keys():
@@ -210,7 +211,7 @@ class MarketAnalyzer:
 
         self.df = (self.DF.loc[idx, assets]
                           .dropna(axis=1, how='all')
-                          .dropna(axis=0, how='any')
+                          .dropna(axis=0, how='all')
                           .copy())
         self.idx = self.df.index
 
