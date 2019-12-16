@@ -34,8 +34,8 @@ class MarketAnalyzer:
     Methods
     -------
     set_index
-    set_asset
-    set_metric
+    _set_assets
+    _set_metric
     get_perf
     get_corr
     get_kpi
@@ -84,9 +84,9 @@ class MarketAnalyzer:
         self.T, self.N = data.shape
         self.IDX = data.index
         # Set date attribute
-        self.set_index(min(self.IDX), max(self.IDX))
+        self._set_index(min(self.IDX), max(self.IDX))
         # Set assets attribute
-        self.set_asset(list(data.columns))
+        self._set_assets(list(data.columns))
         # Set metrics attribute
         # TODO : available_metrics
         self.set_metric('annual_return', 'annual_volatility', 'sharpe',
@@ -148,7 +148,25 @@ class MarketAnalyzer:
 
         return self.IDX[(self.IDX >= start) & (self.IDX <= end)]
 
-    def set_index(self, start, end=None):
+    def _set_data(self, idx, assets):
+        """ Set dataframe on which metrics are computed and analyzed. """
+        if self.n >= self.N:
+            assets = slice(None)
+
+        if idx.size >= self.IDX.size:
+            idx = slice(None)
+
+        self.df = (self.DF.loc[idx, assets]
+                          .dropna(axis=1, how='all')
+                          .dropna(axis=0, how='any')
+                          .copy())
+        self.idx = self.df.index
+
+    def set_perimeter(self, assets, start, end=None):
+        self._set_assets(assets)
+        self._set_index(start,end)
+
+    def _set_index(self, start, end=None):
         """ Select starting and ending period to analyze.
 
         Parameters
@@ -174,7 +192,7 @@ class MarketAnalyzer:
             self._set_data(idx, self.assets)
             self._set_days_per_year()
 
-    def set_asset(self, assets):
+    def _set_assets(self, assets):
         """ Set assets to analyze and compare.
 
         Parameters
@@ -201,19 +219,7 @@ class MarketAnalyzer:
         self.metrics = metrics
         self.m = len(metrics)
 
-    def _set_data(self, idx, assets):
-        """ Set dataframe on which metrics are computed and analyzed. """
-        if self.n >= self.N:
-            assets = slice(None)
 
-        if idx.size >= self.IDX.size:
-            idx = slice(None)
-
-        self.df = (self.DF.loc[idx, assets]
-                          .dropna(axis=1, how='all')
-                          .dropna(axis=0, how='any')
-                          .copy())
-        self.idx = self.df.index
 
     def get_kpi(self):
         """ Compute some key performance indicators and set them in a table.
