@@ -211,7 +211,7 @@ class MarketAnalyzer:
 
         self.df = (self.DF.loc[idx, assets]
                           .dropna(axis=1, how='all')
-                          .dropna(axis=0, how='all')
+                          .dropna(axis=0, how='any')
                           .copy())
         self.idx = self.df.index
 
