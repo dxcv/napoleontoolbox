@@ -509,3 +509,7 @@ def roll_sharpe(series, period=252, win=0, cap=True):
     rollingSharpe = lambda rets : sharpe(rets, period)
     rolledSeries = pd.Series(series).rolling(win).apply(rollingSharpe)
     return rolledSeries.values
+
+
+def from_ret_to_price(series, initial_price = 1.):
+    return initial_price * (1 + series).cumprod()
