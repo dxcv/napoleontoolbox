@@ -30,8 +30,8 @@ class AbstractAssembler(ABC):
 
 
 class FeaturesAssembler(AbstractAssembler):
-    def assembleFeature(self, saver, seed, normalize, advanced_features, whole_history, n_past_features, s):
-        print('advanced_features_in' + str(advanced_features))
+    def assembleFeature(self, saver, seed, normalize, advanced_features_in, whole_history, n_past_features, s):
+        print('advanced_features_in' + str(advanced_features_in))
         print('whole_history' + str(whole_history))
         print('n_past_features' + str(n_past_features))
         print('rebalancing ' + str(s))
@@ -112,14 +112,14 @@ class FeaturesAssembler(AbstractAssembler):
         N = df.columns.size
 
         if whole_history:
-            if advanced_features:
+            if advanced_features_in:
                 features = np.zeros([T, n_past_features, N + len(features_names)], np.float32)
-            if not advanced_features:
+            if not advanced_features_in:
                 features = np.zeros([T, n_past_features, N], np.float32)
         else:
-            if advanced_features:
+            if advanced_features_in:
                 features = np.zeros([T, N + N * N + len(features_names)], np.float32)
-            if not advanced_features:
+            if not advanced_features_in:
                 features = np.zeros([T, N + N * N], np.float32)
 
 
@@ -134,10 +134,10 @@ class FeaturesAssembler(AbstractAssembler):
             F = feat[t_n: t, :]
             X_back = ret[t_n: t, :]
             if whole_history:
-                if advanced_features:
+                if advanced_features_in:
                     # features = np.zeros([T, n_past_features, N + len(features_names)], np.float32)
                     X_back = np.concatenate((X_back, F), axis=1)
-                if not advanced_features:
+                if not advanced_features_in:
                     # features = np.zeros([T, n_past_features, N], np.float32)
                     features[t: t + 1] = X_back
 
@@ -149,13 +149,13 @@ class FeaturesAssembler(AbstractAssembler):
                 mat_std[mat_std == 0.] = 1.
                 mat_corr = np.cov(X_back, rowvar=False) / mat_std
 
-                if advanced_features:
+                if advanced_features_in:
                     # features = np.zeros(
                     #     [T, n_past_features, N + len(features_names) + len(signal_features_names)],
                     #     np.float32)
                     features[t: t + 1] = np.transpose(
                         np.concatenate((mean, mat_corr.flatten(), F_mean), axis=0))
-                if not advanced_features:
+                if not advanced_features_in:
                     # features = np.zeros([T, n_past_features, N], np.float32)
                     features[t: t + 1] = np.transpose(
                         np.concatenate((mean, mat_corr.flatten()), axis=0))
@@ -167,12 +167,12 @@ class FeaturesAssembler(AbstractAssembler):
             X_back = ret[t_n: t, :]
 
             if whole_history:
-                if advanced_features:
+                if advanced_features_in:
                     # features = np.zeros(
                     #     [T, n_past_features, N + len(features_names) + len(signal_features_names)],
                     #     np.float32)
                     X_back = np.concatenate((X_back, F), axis=1)
-                if not advanced_features:
+                if not advanced_features_in:
                     # features = np.zeros([T, n_past_features, N], np.float32)
                     features[t: t + 1] = X_back
                 # if advanced_features_in:
@@ -188,11 +188,11 @@ class FeaturesAssembler(AbstractAssembler):
                 mat_std[mat_std == 0.] = 1.
                 mat_corr = np.cov(X_back, rowvar=False) / mat_std
 
-                if advanced_features:
+                if advanced_features_in:
                     # features = np.zeros([T, n_past_features, N + len(features_names)], np.float32)
                     features[t: t + 1] = np.transpose(
                         np.concatenate((mean, mat_corr.flatten(), F_mean), axis=0))
-                if not advanced_features:
+                if not advanced_features_in:
                     # features = np.zeros([T, n_past_features, N], np.float32)
                     features[t: t + 1] = np.transpose(
                         np.concatenate((mean, mat_corr.flatten()), axis=0))
@@ -212,7 +212,7 @@ class FeaturesAssembler(AbstractAssembler):
 
         print('saving file')
         np.save(self.root  + self.user + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
-            advanced_features) + '_' + str(n_past_features) + '_features.npy', features)
+            advanced_features_in) + '_' + str(n_past_features) + '_features.npy', features)
 
 
 
