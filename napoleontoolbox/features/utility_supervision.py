@@ -14,25 +14,24 @@ import torch
 
 
 class AbstractAssembler(ABC):
-    def __init__(self, features_path, returns_path, root='../data/', user = 'napoleon', lr=0.001, low_bound = 0.02, up_bound = 0.4):
+    def __init__(self, features_path, returns_path, root='../data/', user = 'napoleon', low_bound = 0.02, up_bound = 0.4):
 
         super().__init__()
         self.root =  root
         self.user =  user
         self.features_path = features_path
         self.returns_path = returns_path
-        self.lr = lr
         self.low_bound = low_bound
         self.up_bound = up_bound
 
 
     @abstractmethod
-    def computeUtility(self,saver, seed):
+    def computeUtility(self, s):
         pass
 
 
 class UtilitySuperviser(AbstractAssembler):
-    def computeUtility(self, saver, seed, s):
+    def computeUtility(self, s):
         print('quotes loading')
 
         df = pd.read_pickle(self.root + self.returns_path)

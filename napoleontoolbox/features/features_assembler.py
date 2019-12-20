@@ -13,28 +13,24 @@ import torch
 
 
 class AbstractAssembler(ABC):
-    def __init__(self, features_path, returns_path, root='../data/', user = 'napoleon', lr=0.001):
+    def __init__(self, features_path, returns_path, root='../data/', user = 'napoleon'):
         super().__init__()
         self.root =  root
         self.user =  user
         self.features_path = features_path
         self.returns_path = returns_path
-        self.lr = lr
 
-        #advanced_features = pd.read_excel(root + '/features_completed.xlsx',
-        #                                  sheet_name='Features')
 
     @abstractmethod
-    def assembleFeature(self,saver, seed, normalize, advanced_features, whole_history, n_past_features, s):
+    def assembleFeature(self,normalize, advanced_features, whole_history, n_past_features):
         pass
 
 
 class FeaturesAssembler(AbstractAssembler):
-    def assembleFeature(self, saver, seed, normalize, advanced_features_in, whole_history, n_past_features, s):
+    def assembleFeature(self,normalize, advanced_features_in, whole_history, n_past_features):
         print('advanced_features_in' + str(advanced_features_in))
         print('whole_history' + str(whole_history))
         print('n_past_features' + str(n_past_features))
-        print('rebalancing ' + str(s))
 
         df = pd.read_pickle(self.root + self.returns_path)
 
@@ -124,7 +120,7 @@ class FeaturesAssembler(AbstractAssembler):
 
 
         # for t in range(max(n_past_features, s), T - s):
-        for t in range(max(n_past_features, s), T):
+        for t in range(n_past_features, T):
             np.random.seed(0)
             torch.manual_seed(0)
             # the output to predict cannot be computed in the future
