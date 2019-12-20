@@ -36,33 +36,18 @@ class FeaturesAssembler(AbstractAssembler):
         print('n_past_features' + str(n_past_features))
         print('rebalancing ' + str(s))
 
-
-        print('quotes loading')
-
-        # path = root + '/sp_blend_under_blends_quotes.pkl'
-        # df = pd.read_pickle(path)
-        # pd.read_excel(open('tmp.xlsx', 'rb'),sheet_name = 'Sheet3')
-
-        # df = pd.read_excel(root+'/SG2.xlsx',sheet_name='data')
-        # df = pd.read_pickle(root + '/SG2.pkl')
         df = pd.read_pickle(self.root + self.returns_path)
 
-        print(df.columns)
-
-        # df = pd.read_excel(root+'/SG2.xlsx',sheet_name='data2')
-        # df = pd.read_pickel(root + '/SG2_restreint.pkl', sheet_name='data')
-
         df['Date'] = pd.to_datetime(df['Date'])
-        strats = list(df.columns)
         df = df.set_index('Date')
-
+        strats = [col for col in list(df.columns) if col != 'Date']
         df = df.fillna(method='ffill')
         T = df.index.size
 
-        print('advanced features loading')
-        # advanced_features = pd.read_excel('../data/Advanced_Market_Features.xlsx', sheet_name='Features')
         advanced_features = pd.read_pickle(self.root + self.features_path)
-        features_names = list(advanced_features.columns)
+        features_names = [col for col in list(advanced_features.columns) if col!='Date']
+
+
         advanced_features['Date'] = pd.to_datetime(advanced_features['Date'])
 
         # quotes_df=quotes_df.sort_values(by='date', ascending=True)
