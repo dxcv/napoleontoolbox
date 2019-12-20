@@ -20,6 +20,9 @@ napoleontoolbox/connector/napoleon_connector.py
 napoleontoolbox/display/__init__.py
 napoleontoolbox/display/graph.py
 napoleontoolbox/display/table.py
+napoleontoolbox/features/__init__.py
+napoleontoolbox/features/features_assembler.py
+napoleontoolbox/features/utility_supervision.py
 napoleontoolbox/neural_net/__init__.py
 napoleontoolbox/neural_net/expanding_roll_multi_layer_perceptron.py
 napoleontoolbox/neural_net/roll_aggregated_multi_neural_networks.py
