@@ -178,7 +178,7 @@ class SimpleExplainer(AbstractRunner):
                 y=y
             )
             tm = tm.set_roll_period(n, s)
-        features_df = tm.unroll_features(features_names)
+        features_df = tm.unroll_features(dates, features_names)
         return features_df
 
 

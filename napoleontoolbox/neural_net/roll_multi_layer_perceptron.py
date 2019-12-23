@@ -666,10 +666,11 @@ class RollMultiLayerPerceptron(MultiLayerPerceptron, _RollingBasis):
             if np.random.rand()>=0.8:
                 print(txt)
 
-    def unroll_features(self,feature_names = None):
+    def unroll_features(self,dates, feature_names):
         rows_list = []
-        if feature_names is None:
-            feature_names = ['feat_' + str(meCol) for meCol in range(self.X.shape[1])]
+        dates_list = []
+
+
         for eval_slice, test_slice in self:
             # Compute prediction on eval and test set
             self.y_eval[eval_slice] = self.sub_predict(self.X[eval_slice])
@@ -679,6 +680,7 @@ class RollMultiLayerPerceptron(MultiLayerPerceptron, _RollingBasis):
             features_dico = self.eval_predictor_importance(self.X[test_slice], feature_names)
 
             rows_list.append(features_dico)
+            dates_list.append(dates[test_slice.start])
 
             # Update loss function of eval set and test set
 
@@ -700,6 +702,8 @@ class RollMultiLayerPerceptron(MultiLayerPerceptron, _RollingBasis):
                 print(txt)
 
         features_df = pd.DataFrame(rows_list)
+        features_df.set_index(dates_list)
+
         return features_df
 
 
