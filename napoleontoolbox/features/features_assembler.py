@@ -37,11 +37,14 @@ class FeaturesAssembler(AbstractAssembler):
         df['Date'] = pd.to_datetime(df['Date'])
         df = df.set_index('Date')
         strats = [col for col in list(df.columns) if col != 'Date']
+
+        corr_strats = [col1+'_'+col2 for col1 in strats for col2 in strats]
         df = df.fillna(method='ffill')
         T = df.index.size
 
         advanced_features = pd.read_pickle(self.root + self.features_path)
         features_names = [col for col in list(advanced_features.columns) if col!='Date']
+        predictor_names = None
 
 
         advanced_features['Date'] = pd.to_datetime(advanced_features['Date'])
@@ -115,8 +118,10 @@ class FeaturesAssembler(AbstractAssembler):
         else:
             if advanced_features_in:
                 features = np.zeros([T, N + N * N + len(features_names)], np.float32)
+                predictor_names = strats + corr_strats + features_names
             if not advanced_features_in:
                 features = np.zeros([T, N + N * N], np.float32)
+                predictor_names = strats + corr_strats
 
 
         # for t in range(max(n_past_features, s), T - s):
@@ -209,6 +214,8 @@ class FeaturesAssembler(AbstractAssembler):
         print('saving file')
         np.save(self.root  + self.user + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
             advanced_features_in) + '_' + str(n_past_features) + '_features.npy', features)
+        np.save(self.root  + self.user + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
+            advanced_features_in) + '_' + str(n_past_features) + '_features_names.npy', predictor_names)
 
 
 

@@ -22,12 +22,13 @@ import torch.nn as nn
 
 
 class AbstractRunner(ABC):
-    def __init__(self, supervised_utility_path, features_path, returns_path, root='../data/', user = 'napoleon', lr=0.001):
+    def __init__(self, supervised_utility_path, features_path, features_names_path, returns_path, root='../data/', user = 'napoleon', lr=0.001):
         super().__init__()
         self.root =  root
         self.user =  user
         self.supervised_utility_path = supervised_utility_path
         self.features_path = features_path
+        self.features_names_path = features_names_path
         self.returns_path = returns_path
         self.lr = lr
 
@@ -82,6 +83,10 @@ class SimpleExplainer(AbstractRunner):
         features = np.load(
             self.root + self.user + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
                 advance_feature) + '_' + str(n_past_features) + self.features_path)
+
+        features_names = np.load(
+            self.root + self.user + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
+                advance_feature) + '_' + str(n_past_features) + self.features_names_path)
 
         # X = features[s:-s]
         # y = result[s:-s, :, supervisors[sup]]
@@ -173,7 +178,7 @@ class SimpleExplainer(AbstractRunner):
                 y=y
             )
             tm = tm.set_roll_period(n, s)
-        features_df = tm.unroll_features()
+        features_df = tm.unroll_features(features_names)
         return features_df
 
 
