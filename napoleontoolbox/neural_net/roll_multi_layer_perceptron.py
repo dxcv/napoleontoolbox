@@ -702,7 +702,7 @@ class RollMultiLayerPerceptron(MultiLayerPerceptron, _RollingBasis):
                 print(txt)
 
         features_df = pd.DataFrame(rows_list)
-        features_df.set_index(dates_list)
+        features_df.index = list(dates_list)
 
         return features_df
 
