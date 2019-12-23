@@ -54,9 +54,9 @@ build_requires = [
 
 setup(
     name='napoleontoolbox',
-    version='0.3.4',
+    version='0.3.5',
     packages=find_packages(),
-    download_url='https://github.com/stef564/napoleontoolbox/archive/0.3.4.tar.gz',
+    download_url='https://github.com/stef564/napoleontoolbox/archive/0.3.5.tar.gz',
     author='Napoleon Group',
     author_email='dsi@napoleonx.ai',
     description='Dashboard for financial market data',
@@ -65,4 +65,4 @@ setup(
     classifiers=CLASSIFIERS,
 )
 #sudo python setup.py sdist
-#sudo twine upload dist/* (napoleonAM defacto pwd)
+#sudo twine upload dist/* (napoleonAM defacto pwd)pyt

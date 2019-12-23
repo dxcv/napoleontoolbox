@@ -666,5 +666,41 @@ class RollMultiLayerPerceptron(MultiLayerPerceptron, _RollingBasis):
             if np.random.rand()>=0.8:
                 print(txt)
 
+    def unroll_features(self,feature_names = None):
+        rows_list = []
+        if feature_names is None:
+            feature_names = ['feat_' + str(meCol) for meCol in range(tm.X.shape[1])]
+        for eval_slice, test_slice in self:
+            # Compute prediction on eval and test set
+            self.y_eval[eval_slice] = self.sub_predict(self.X[eval_slice])
+            test_prediction = self.sub_predict(self.X[test_slice])
+            self.y_test[test_slice] = test_prediction
+            # getting the features importance
+            features_dico = self.eval_predictor_importance(self.X[test_slice], feature_names)
+
+            rows_list.append(features_dico)
+
+            # Update loss function of eval set and test set
+
+            ev = self.y_eval[eval_slice]
+            ev_true = self.y[eval_slice]
+
+            tt = self.y_test[test_slice]
+            tt_true = self.y[test_slice]
+
+            self.loss_eval += [mean_squared_error(ev, ev_true)]
+            self.loss_test += [mean_squared_error(tt, tt_true)]
+
+            # Print loss on current eval and test set
+            pct = (self.t - self.n - self.s) / (self.T - self.n - self.T % self.s)
+            txt = '{:5.2%} is done | '.format(pct)
+            txt += 'Eval loss is {:5.2} | '.format(self.loss_eval[-1])
+            txt += 'Test loss is {:5.2} | '.format(self.loss_test[-1])
+            if np.random.rand()>=0.8:
+                print(txt)
+
+        features_df = pd.DataFrame(rows_list)
+        return features_df
+
 
 
