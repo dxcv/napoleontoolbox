@@ -669,7 +669,7 @@ class RollMultiLayerPerceptron(MultiLayerPerceptron, _RollingBasis):
     def unroll_features(self,feature_names = None):
         rows_list = []
         if feature_names is None:
-            feature_names = ['feat_' + str(meCol) for meCol in range(tm.X.shape[1])]
+            feature_names = ['feat_' + str(meCol) for meCol in range(self.X.shape[1])]
         for eval_slice, test_slice in self:
             # Compute prediction on eval and test set
             self.y_eval[eval_slice] = self.sub_predict(self.X[eval_slice])
