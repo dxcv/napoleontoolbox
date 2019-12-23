@@ -48,7 +48,6 @@ class FeaturesLauncher():
         self.db_path = db_path
         self.runs = []
         self.totalRow = 0
-        self.instantiateTable()
         self.empty_runs_to_investigate = []
 
 
@@ -56,7 +55,7 @@ class FeaturesLauncher():
     def launchExplainer(self, toRun):
         if len(self.args)>1:
             raise Exception('Features explanation for one run only')
-        featuresDf = toRun(self.args[0])
+        featuresDf = toRun(*self.args[0])
         return featuresDf
 
 
