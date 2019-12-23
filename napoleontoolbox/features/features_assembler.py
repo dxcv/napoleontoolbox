@@ -13,12 +13,14 @@ import torch
 
 
 class AbstractAssembler(ABC):
-    def __init__(self, features_path, returns_path, root='../data/', user = 'napoleon'):
+    def __init__(self, features_path, returns_path, root='../data/', user = 'napoleon', features_saving_path = '_features.npy', features_names_saving_path = '_features_names.npy'):
         super().__init__()
         self.root =  root
         self.user =  user
         self.features_path = features_path
         self.returns_path = returns_path
+        self.features_saving_path = features_saving_path
+        self.features_names_saving_path = features_names_saving_path
 
 
     @abstractmethod
@@ -212,10 +214,15 @@ class FeaturesAssembler(AbstractAssembler):
             raise Exception('inf values for assembled features')
 
         print('saving file')
-        np.save(self.root  + self.user + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
-            advanced_features_in) + '_' + str(n_past_features) + '_features.npy', features)
-        np.save(self.root  + self.user + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
-            advanced_features_in) + '_' + str(n_past_features) + '_features_names.npy', predictor_names)
+        features_saving_path = self.root  + self.user + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
+            advanced_features_in) + '_' + str(n_past_features) + self.features_saving_path
+        print(features_saving_path)
+        np.save(features_saving_path, features)
+
+        features_names_saving_path = self.root  + self.user + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
+            advanced_features_in) + '_' + str(n_past_features) + self.features_names_saving_path
+        print(features_names_saving_path)
+        np.save(features_names_saving_path, predictor_names)
 
 
 

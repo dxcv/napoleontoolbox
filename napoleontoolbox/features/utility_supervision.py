@@ -14,7 +14,7 @@ import torch
 
 
 class AbstractAssembler(ABC):
-    def __init__(self, features_path, returns_path, root='../data/', user = 'napoleon', low_bound = 0.02, up_bound = 0.4):
+    def __init__(self, features_path, returns_path, root='../data/', user = 'napoleon', low_bound = 0.02, up_bound = 0.4, supervision_saving_path='_supervision.npy'):
 
         super().__init__()
         self.root =  root
@@ -23,6 +23,7 @@ class AbstractAssembler(ABC):
         self.returns_path = returns_path
         self.low_bound = low_bound
         self.up_bound = up_bound
+        self.supervision_saving_path = supervision_saving_path
 
 
     @abstractmethod
@@ -201,7 +202,7 @@ class UtilitySuperviser(AbstractAssembler):
                         result[t: t + 1, :, ii] = w0
 
         print('saving file')
-        np.save(self.root + self.user + '_' + str(s) + '_supervision.npy', result)
+        np.save(self.root + self.user + '_' + str(s) + self.supervision_saving_path, result)
         print('saved files')
         print('number of nan/infinity output')
         print(np.isnan(result).sum(axis=0).sum())
