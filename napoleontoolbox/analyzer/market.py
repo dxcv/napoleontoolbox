@@ -332,8 +332,33 @@ class MarketAnalyzer:
         else:
             w = int(window)
 
-        i = np.amax(self.IDX == self.idx[0])
-        idx = self.get_index(max(i - w, 0), self.idx[-1])
+        i = self.IDX[max(np.argmax(self.IDX == self.idx[0])-w,0)]
+
+        idx = self.get_index(i, self.idx[-1])
+        df = self.DF.loc[idx, self.assets]
+
+        return roll_corr(df, window=window).loc[self.idx, :].dropna()
+
+    def get_plot_corr(self, window, specific_asset):
+        """ Get rolling cross-correlation.
+
+        Returns
+        -------
+        pd.DataFrame
+            Rolling pairwise correlation of assets.
+
+        """
+        if self.n < 2:
+            return pd.DataFrame()
+
+        if isinstance(window, str):
+            w = int(window[:-1])
+        else:
+            w = int(window)
+
+        i = self.IDX[max(np.argmax(self.IDX == self.idx[0])-w,0)]
+
+        idx = self.get_index(i, self.idx[-1])
         df = self.DF.loc[idx, self.assets]
 
         return roll_corr(df, window=window).loc[self.idx, :].dropna()
