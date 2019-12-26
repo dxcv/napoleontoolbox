@@ -51,12 +51,11 @@ build_requires = [
     'seaborn>=0.9.0',
 ]
 
-
 setup(
     name='napoleontoolbox',
-    version='0.4.7',
+    version='0.5.0',
     packages=find_packages(),
-    download_url='https://github.com/stef564/napoleontoolbox/archive/0.4.7.tar.gz',
+    download_url='https://github.com/stef564/napoleontoolbox/archive/0.5.0.tar.gz',
     author='Napoleon Group',
     author_email='dsi@napoleonx.ai',
     description='Dashboard for financial market data',

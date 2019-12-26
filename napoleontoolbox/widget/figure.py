@@ -11,10 +11,10 @@ from ipywidgets import widgets
 
 # Local packages
 
-__all__ = ['Figure']
+__all__ = ['NapoleonFigure']
 
 
-class Figure:
+class NapoleonFigure:
     """ Object to display a figure linked to some widgets.
 
     Parameters
