@@ -43,6 +43,8 @@ napoleontoolbox/parallel_run/runner.py
 napoleontoolbox/rebalancing/__init__.py
 napoleontoolbox/rebalancing/allocation.py
 napoleontoolbox/rebalancing/rolling.py
+napoleontoolbox/statistics/__init__.py
+napoleontoolbox/statistics/tester.py
 napoleontoolbox/tools/__init__.py
 napoleontoolbox/tools/analyze_tools.py
 napoleontoolbox/tools/display.py
