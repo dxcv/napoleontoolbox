@@ -29,7 +29,7 @@ class AbstractAssembler(ABC):
 
 
 class FeaturesAssembler(AbstractAssembler):
-    def reassembleAdvancedFeaturesForClusterization(self, normalize = True, stationarize = True, clustering_size = 21, simple = False):
+    def reassembleAdvancedFeaturesForClusterization(self, normalize = True, stationarize = True, clustering_size = 21, simple = False, features_extraction = True):
         df = pd.read_pickle(self.root + self.returns_path)
 
         df['Date'] = pd.to_datetime(df['Date'])
@@ -118,7 +118,11 @@ class FeaturesAssembler(AbstractAssembler):
         T = df.index.size
         N = df.columns.size
 
-        features = np.zeros([T, clustering_size, len(features_names)], np.float32)
+        if features_extraction:
+            features = np.zeros([T, len(features_names)], np.float32)
+        else:
+            features = np.zeros([T, clustering_size, len(features_names)], np.float32)
+
 
         # for t in range(max(n_past_features, s), T - s):
         for t in range(clustering_size, T):
@@ -130,8 +134,14 @@ class FeaturesAssembler(AbstractAssembler):
             t_n = min(max(t - clustering_size, 0), T)
             F = feat[t_n: t, :]
             X_back = ret[t_n: t, :]
+            F_mean = np.mean(F, axis=0)
 
-            features[t: t + 1] = F
+
+            if features_extraction:
+                features[t: t + 1] = F_mean
+                #features[t: t + 1] = np.transpose(np.concatenate((mean, mat_corr.flatten(), F_mean), axis=0))
+            else:
+                features[t: t + 1] = F
 
             if t % 500 == 0:
                 print('{:.2%}'.format(t / T))
