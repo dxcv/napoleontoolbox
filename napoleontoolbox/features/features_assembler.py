@@ -29,7 +29,7 @@ class AbstractAssembler(ABC):
 
 
 class FeaturesAssembler(AbstractAssembler):
-    def reassembleAdvancedFeaturesForClusterization(self, normalize = True, stationarize = True, clustering_size = 21):
+    def reassembleAdvancedFeaturesForClusterization(self, normalize = True, stationarize = True, clustering_size = 21, simple = False):
         df = pd.read_pickle(self.root + self.returns_path)
 
         df['Date'] = pd.to_datetime(df['Date'])
@@ -107,6 +107,8 @@ class FeaturesAssembler(AbstractAssembler):
         print('number of nans in returns')
         print(np.isnan(df_ret[strats]).sum(axis=0))
 
+        if simple:
+            return strats, features_names, df_ret
 
         ret_df = df_ret[strats]
         ret = ret_df.values
@@ -143,6 +145,7 @@ class FeaturesAssembler(AbstractAssembler):
             raise Exception('nan values for assembled features')
         if np.isinf(features).sum(axis=0).sum() > 0:
             raise Exception('inf values for assembled features')
+        return strats, features_names, features
 
 
     def assembleFeature(self, stationarize, normalize, advanced_features_in, whole_history, n_past_features):
@@ -229,6 +232,7 @@ class FeaturesAssembler(AbstractAssembler):
 
         print('number of nans in returns')
         print(np.isnan(df_ret[strats]).sum(axis=0))
+
 
         ret_df = df_ret[strats]
         ret = ret_df.values

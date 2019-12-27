@@ -1,12 +1,12 @@
 Metadata-Version: 1.1
 Name: napoleontoolbox
-Version: 0.6.6
+Version: 0.6.7
 Summary: Dashboard for financial market data
 Home-page: UNKNOWN
 Author: Napoleon Group
 Author-email: dsi@napoleonx.ai
 License: MIT
-Download-URL: https://github.com/stef564/napoleontoolbox/archive/0.6.6.tar.gz
+Download-URL: https://github.com/stef564/napoleontoolbox/archive/0.6.7.tar.gz
 Description: UNKNOWN
 Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
