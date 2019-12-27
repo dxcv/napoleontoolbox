@@ -30,9 +30,6 @@ class AbstractAssembler(ABC):
 
 class FeaturesAssembler(AbstractAssembler):
     def getAdvancedFeature(self, ):
-        print('advanced_features_in' + str(advanced_features_in))
-        print('whole_history' + str(whole_history))
-        print('n_past_features' + str(n_past_features))
         df = pd.read_pickle(self.root + self.returns_path)
 
         df['Date'] = pd.to_datetime(df['Date'])
@@ -78,13 +75,19 @@ class FeaturesAssembler(AbstractAssembler):
         df_bis = df_bis.drop(columns=['Date'])
         print('return')
 
-        df_bis = df_bis.fillna(method='ffill').fillna(method='bfill')
+        df_bis = df_bis.fillna(method='ffill')
         # df_ret = df_bis.pct_change().fillna(0.)
         df_ret = df_bis.copy()
 
         for col in strats:
             print(col + str(len(df_bis.columns)))
             df_ret[col] = df_bis[col].pct_change().fillna(0.)
+
+        print('number of nans in advanced features')
+        print(np.isnan(df_ret[features_names]).sum(axis=0))
+
+        print('number of nans in returns')
+        print(np.isnan(df_ret[strats]).sum(axis=0))
 
         return strats, features_names, df_ret
 
@@ -142,8 +145,7 @@ class FeaturesAssembler(AbstractAssembler):
         df_bis = df_bis.drop(columns=['Date'])
         print('return')
 
-        df_bis = df_bis.fillna(method='ffill').fillna(method='bfill')
-        # df_ret = df_bis.pct_change().fillna(0.)
+        df_bis = df_bis.fillna(method='ffill')
         df_ret = df_bis.copy()
 
         for col in strats:
@@ -153,18 +155,23 @@ class FeaturesAssembler(AbstractAssembler):
         print('return done')
         print('return computed')
 
+        print('number of nans in advanced features')
+        print(np.isnan(df_ret[features_names]).sum(axis=0))
+
+        print('number of nans in returns')
+        print(np.isnan(df_ret[strats]).sum(axis=0))
+
         ret_df = df_ret[strats]
         ret = ret_df.values
 
         feat = df_ret[features_names].values
 
-
         if normalize:
             print('normalizing')
             feat[feat == -np.inf] = 0
             feat[feat == np.inf] = 0
-            feat_stds = np.std(feat, axis=0)
-            feat_means = np.mean(feat, axis=0)
+            feat_stds = np.nanstd(feat, axis=0)
+            feat_means = np.nanmean(feat, axis=0)
             feat = (feat - feat_means) / feat_stds
 
         T = df.index.size
