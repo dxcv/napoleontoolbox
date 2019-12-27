@@ -75,8 +75,7 @@ class FeaturesAssembler(AbstractAssembler):
         df_bis = df_bis.drop(columns=['Date'])
         print('return')
 
-        df_bis = df_bis.fillna(method='ffill')
-        # df_ret = df_bis.pct_change().fillna(0.)
+        df_bis = df_bis.fillna(method='ffill').fillna(method='bfill')
         df_ret = df_bis.copy()
 
         for col in strats:
@@ -145,7 +144,7 @@ class FeaturesAssembler(AbstractAssembler):
         df_bis = df_bis.drop(columns=['Date'])
         print('return')
 
-        df_bis = df_bis.fillna(method='ffill')
+        df_bis = df_bis.fillna(method='ffill').fillna(method='bfill')
         df_ret = df_bis.copy()
 
         for col in strats:
