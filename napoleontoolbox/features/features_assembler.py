@@ -29,7 +29,67 @@ class AbstractAssembler(ABC):
 
 
 class FeaturesAssembler(AbstractAssembler):
-    def assembleFeature(self,normalize, advanced_features_in, whole_history, n_past_features):
+    def getAdvancedFeature(self, ):
+        print('advanced_features_in' + str(advanced_features_in))
+        print('whole_history' + str(whole_history))
+        print('n_past_features' + str(n_past_features))
+        df = pd.read_pickle(self.root + self.returns_path)
+
+        df['Date'] = pd.to_datetime(df['Date'])
+        df = df.set_index('Date')
+        strats = [col for col in list(df.columns) if col != 'Date']
+
+        df = df.fillna(method='ffill')
+
+        advanced_features = pd.read_pickle(self.root + self.features_path)
+        features_names = [col for col in list(advanced_features.columns) if col!='Date']
+
+
+        advanced_features['Date'] = pd.to_datetime(advanced_features['Date'])
+
+        # quotes_df=quotes_df.sort_values(by='date', ascending=True)
+        # quotes_df.head()
+
+        print(df.columns)
+        print(df.shape)
+
+        print(advanced_features.columns)
+        print(advanced_features.shape)
+
+        # Computationnal period (default 1 year)
+
+        np.random.seed(0)
+        torch.manual_seed(0)
+
+        ##===================##
+        ##  Setting targets  ##
+        ##===================##
+
+        #
+        df_bis = df.copy()
+        # df_ret = df_bis.pct_change().fillna(0.)
+        # ret = df_ret.values
+
+        print('merging')
+        df_bis = pd.merge(df_bis, advanced_features, how='left', on=['Date'])
+
+        print('merging done')
+        df_bis.index = df_bis['Date']
+        df_bis = df_bis.drop(columns=['Date'])
+        print('return')
+
+        df_bis = df_bis.fillna(method='ffill').fillna(method='bfill')
+        # df_ret = df_bis.pct_change().fillna(0.)
+        df_ret = df_bis.copy()
+
+        for col in strats:
+            print(col + str(len(df_bis.columns)))
+            df_ret[col] = df_bis[col].pct_change().fillna(0.)
+
+        return strats, features_names, df_ret
+
+
+    def assembleFeature(self, normalize, advanced_features_in, whole_history, n_past_features):
         print('advanced_features_in' + str(advanced_features_in))
         print('whole_history' + str(whole_history))
         print('n_past_features' + str(n_past_features))
@@ -85,7 +145,6 @@ class FeaturesAssembler(AbstractAssembler):
         df_bis = df_bis.fillna(method='ffill').fillna(method='bfill')
         # df_ret = df_bis.pct_change().fillna(0.)
         df_ret = df_bis.copy()
-        prices = df_bis[strats].values
 
         for col in strats:
             print(col + str(len(df_bis.columns)))
@@ -99,7 +158,6 @@ class FeaturesAssembler(AbstractAssembler):
 
         feat = df_ret[features_names].values
 
-        dates = df_ret.index
 
         if normalize:
             print('normalizing')

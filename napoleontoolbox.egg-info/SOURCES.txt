@@ -23,6 +23,8 @@ napoleontoolbox/display/table.py
 napoleontoolbox/features/__init__.py
 napoleontoolbox/features/features_assembler.py
 napoleontoolbox/features/utility_supervision.py
+napoleontoolbox/movie/__init__.py
+napoleontoolbox/movie/movie_maker.py
 napoleontoolbox/neural_net/__init__.py
 napoleontoolbox/neural_net/expanding_roll_multi_layer_perceptron.py
 napoleontoolbox/neural_net/roll_aggregated_multi_neural_networks.py

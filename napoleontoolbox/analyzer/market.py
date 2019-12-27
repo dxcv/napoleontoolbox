@@ -339,3 +339,22 @@ class MarketAnalyzer:
 
         return roll_corr(df, window=window).loc[self.idx, :].dropna()
 
+    def get_stacked_corr(self, window):
+        """ Get rolling cross-correlation.
+        Returns
+        -------
+        pd.DataFrame
+            Rolling pairwise correlation of assets.
+        """
+        if self.n < 2:
+            return pd.DataFrame()
+
+        if isinstance(window, str):
+            w = int(window[:-1])
+        else:
+            w = int(window)
+        i = self.IDX[max(np.argmax(self.IDX == self.idx[0])-w,0)]
+        idx = self.get_index(i, self.idx[-1])
+        df = self.DF.loc[idx, self.assets]
+        mat_roll_cor = df.rolling(window).corr()
+        return mat_roll_cor
