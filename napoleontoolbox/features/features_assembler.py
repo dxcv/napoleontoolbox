@@ -29,7 +29,7 @@ class AbstractAssembler(ABC):
 
 
 class FeaturesAssembler(AbstractAssembler):
-    def getAdvancedFeature(self, ):
+    def getAdvancedFeature(self, normalize = True, stationarize = True):
         df = pd.read_pickle(self.root + self.returns_path)
 
         df['Date'] = pd.to_datetime(df['Date'])
@@ -78,9 +78,30 @@ class FeaturesAssembler(AbstractAssembler):
         df_bis = df_bis.fillna(method='ffill').fillna(method='bfill')
         df_ret = df_bis.copy()
 
+        print('computing returns')
         for col in strats:
             print(col + str(len(df_bis.columns)))
             df_ret[col] = df_bis[col].pct_change().fillna(0.)
+
+        if stationarize:
+            print('stationarizing features')
+            for col in features_names:
+                print(col + str(len(df_bis.columns)))
+                df_ret[col] = df_bis[col].pct_change().fillna(0.)
+
+        if normalize:
+            print('normalizing features') # careful : forward looking bias
+            for col in features_names:
+                print(col + str(len(df_bis.columns)))
+                df_ret[col] = (df_ret[col] - df_ret[col].mean()) / df_ret[col].std(ddof=0)
+
+
+
+        print('number of infs in advanced features')
+        print(np.isinf(df_ret[features_names]).sum(axis=0))
+
+        print('number of infs in returns')
+        print(np.isinf(df_ret[strats]).sum(axis=0))
 
         print('number of nans in advanced features')
         print(np.isnan(df_ret[features_names]).sum(axis=0))
