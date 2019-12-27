@@ -29,7 +29,7 @@ class AbstractAssembler(ABC):
 
 
 class FeaturesAssembler(AbstractAssembler):
-    def getAdvancedFeature(self, normalize = True, stationarize = True):
+    def reassembleAdvancedFeaturesForClusterization(self, normalize = True, stationarize = True, clustering_size = 21):
         df = pd.read_pickle(self.root + self.returns_path)
 
         df['Date'] = pd.to_datetime(df['Date'])
@@ -107,7 +107,42 @@ class FeaturesAssembler(AbstractAssembler):
         print('number of nans in returns')
         print(np.isnan(df_ret[strats]).sum(axis=0))
 
-        return strats, features_names, df_ret
+
+        ret_df = df_ret[strats]
+        ret = ret_df.values
+
+        feat = df_ret[features_names].values
+
+        T = df.index.size
+        N = df.columns.size
+
+        features = np.zeros([T, clustering_size, len(features_names)], np.float32)
+
+        # for t in range(max(n_past_features, s), T - s):
+        for t in range(clustering_size, T):
+            np.random.seed(0)
+            torch.manual_seed(0)
+            # the output to predict cannot be computed in the future
+            # we still assemble the predictors
+            # Set input data
+            t_n = min(max(t - clustering_size, 0), T)
+            F = feat[t_n: t, :]
+            X_back = ret[t_n: t, :]
+
+            features[t: t + 1] = F
+
+            if t % 500 == 0:
+                print('{:.2%}'.format(t / T))
+            # we compute the utility output to predict only if not in future
+
+        print('saved files')
+        print('number of nan/infinity features')
+        print(np.isnan(features).sum(axis=0).sum())
+        print(np.isinf(features).sum(axis=0).sum())
+        if np.isnan(features).sum(axis=0).sum() > 0:
+            raise Exception('nan values for assembled features')
+        if np.isinf(features).sum(axis=0).sum() > 0:
+            raise Exception('inf values for assembled features')
 
 
     def assembleFeature(self, stationarize, normalize, advanced_features_in, whole_history, n_past_features):
@@ -216,8 +251,6 @@ class FeaturesAssembler(AbstractAssembler):
                 features = np.zeros([T, N + N * N], np.float32)
                 predictor_names = strats + corr_strats
 
-
-        # for t in range(max(n_past_features, s), T - s):
         for t in range(n_past_features, T):
             np.random.seed(0)
             torch.manual_seed(0)
@@ -253,44 +286,7 @@ class FeaturesAssembler(AbstractAssembler):
                     # features = np.zeros([T, n_past_features, N], np.float32)
                     features[t: t + 1] = np.transpose(
                         np.concatenate((mean, mat_corr.flatten()), axis=0))
-            # features[t: t + 1] = mat_corr.flatten()
-            # print('{:.2%}'.format(t / T))
-            # Set input data
-            t_n = min(max(t - n_past_features, 0), T)
-            F = feat[t_n: t, :]
-            X_back = ret[t_n: t, :]
 
-            if whole_history:
-                if advanced_features_in:
-                    # features = np.zeros(
-                    #     [T, n_past_features, N + len(features_names) + len(signal_features_names)],
-                    #     np.float32)
-                    X_back = np.concatenate((X_back, F), axis=1)
-                if not advanced_features_in:
-                    # features = np.zeros([T, n_past_features, N], np.float32)
-                    features[t: t + 1] = X_back
-                # if advanced_features_in:
-                #     X_back = np.concatenate((X_back, F), axis=1)
-                # if signal_features_in:
-                #     X_back = np.concatenate((X_back, S), axis=1)
-            else:
-                F_mean = np.nanmean(F, axis=0)
-
-                std = np.std(X_back, axis=0).reshape([N, 1])
-                mean = np.mean(X_back, axis=0)
-                mat_std = std @ std.T
-                mat_std[mat_std == 0.] = 1.
-                mat_corr = np.cov(X_back, rowvar=False) / mat_std
-
-                if advanced_features_in:
-                    # features = np.zeros([T, n_past_features, N + len(features_names)], np.float32)
-                    features[t: t + 1] = np.transpose(
-                        np.concatenate((mean, mat_corr.flatten(), F_mean), axis=0))
-                if not advanced_features_in:
-                    # features = np.zeros([T, n_past_features, N], np.float32)
-                    features[t: t + 1] = np.transpose(
-                        np.concatenate((mean, mat_corr.flatten()), axis=0))
-            # features[t: t + 1] = mat_corr.flatten()
             if t % 500 == 0:
                 print('{:.2%}'.format(t / T))
             # we compute the utility output to predict only if not in future
@@ -305,12 +301,12 @@ class FeaturesAssembler(AbstractAssembler):
             raise Exception('inf values for assembled features')
 
         print('saving file')
-        features_saving_path = self.root  + self.user + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
+        features_saving_path = self.root  + self.user + '_' + str(stationarize) + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
             advanced_features_in) + '_' + str(n_past_features) + self.features_saving_path
         print(features_saving_path)
         np.save(features_saving_path, features)
 
-        features_names_saving_path = self.root  + self.user + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
+        features_names_saving_path = self.root  + self.user + '_' + str(stationarize) + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
             advanced_features_in) + '_' + str(n_past_features) + self.features_names_saving_path
         print(features_names_saving_path)
         np.save(features_names_saving_path, predictor_names)

@@ -39,10 +39,9 @@ class AbstractRunner(ABC):
 
 class SimpleRunner(AbstractRunner):
     def runTrial(self, saver, seed, sup, layers, epochs, n_past_features, n, s, whole_history, advance_feature,
-                 advance_signal,
-                 normalize, activation_string, convolution):
+                 advance_signal,stationarize, normalize, activation_string, convolution):
         param = '_' + str(seed) + '_' + str(n_past_features) + '_' + str(n) + '_' + str(layers) + '_' + str(
-            whole_history) + '_' + str(advance_feature) + '_' + str(advance_signal) + '_' + str(normalize) + '_' + str(
+            whole_history) + '_' + str(advance_feature) + '_' + str(advance_signal) + '_' + str(stationarize) + '_' + str(normalize) + '_' + str(
             epochs) + '_' + str(s) + '_' + activation_string + '_' + str(convolution)
         param = param.replace(' ', '')
         param = param.replace(',', '_')
@@ -53,7 +52,7 @@ class SimpleRunner(AbstractRunner):
 
         meArg = (
             seed, sup, param, layers, epochs, n_past_features, n, s, whole_history, advance_feature, advance_signal,
-            normalize,
+            stationarize, normalize,
             activation_string, convolution)
 
         supervisors = {}
@@ -80,7 +79,7 @@ class SimpleRunner(AbstractRunner):
         torch.manual_seed(seed)
         # Set data
         features = np.load(
-            self.root + self.user + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
+            self.root + self.user + '_' + str(stationarize) + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
                 advance_feature) + '_' + str(n_past_features) + self.features_path)
 
         # X = features[s:-s]
@@ -196,6 +195,6 @@ class SimpleRunner(AbstractRunner):
 
         saver.saveResults(savingKey, portfolio, weight_mat)
         print('saved ', seed, sup, param, layers, epochs, n_past_features, n, s, advance_feature, advance_signal,
-              normalize, activation_string, convolution)
+              stationarize, normalize, activation_string, convolution)
 
 
