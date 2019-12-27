@@ -87,15 +87,13 @@ class FeaturesAssembler(AbstractAssembler):
             print('stationarizing features')
             for col in features_names:
                 print(col + str(len(df_bis.columns)))
-                df_ret[col] = df_bis[col].pct_change().fillna(0.)
+                df_ret[col] = df_bis[col].pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.)
 
         if normalize:
             print('normalizing features') # careful : forward looking bias
             for col in features_names:
                 print(col + str(len(df_bis.columns)))
                 df_ret[col] = (df_ret[col] - df_ret[col].mean()) / df_ret[col].std(ddof=0)
-
-
 
         print('number of infs in advanced features')
         print(np.isinf(df_ret[features_names]).sum(axis=0))
@@ -112,7 +110,7 @@ class FeaturesAssembler(AbstractAssembler):
         return strats, features_names, df_ret
 
 
-    def assembleFeature(self, normalize, advanced_features_in, whole_history, n_past_features):
+    def assembleFeature(self, stationarize, normalize, advanced_features_in, whole_history, n_past_features):
         print('advanced_features_in' + str(advanced_features_in))
         print('whole_history' + str(whole_history))
         print('n_past_features' + str(n_past_features))
@@ -168,12 +166,28 @@ class FeaturesAssembler(AbstractAssembler):
         df_bis = df_bis.fillna(method='ffill').fillna(method='bfill')
         df_ret = df_bis.copy()
 
+        print('computing returns')
         for col in strats:
             print(col + str(len(df_bis.columns)))
             df_ret[col] = df_bis[col].pct_change().fillna(0.)
 
-        print('return done')
-        print('return computed')
+        if stationarize:
+            print('stationarizing features')
+            for col in features_names:
+                print(col + str(len(df_bis.columns)))
+                df_ret[col] = df_bis[col].pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.)
+
+        if normalize:
+            print('normalizing features') # careful : forward looking bias
+            for col in features_names:
+                print(col + str(len(df_bis.columns)))
+                df_ret[col] = (df_ret[col] - df_ret[col].mean()) / df_ret[col].std(ddof=0)
+
+        print('number of infs in advanced features')
+        print(np.isinf(df_ret[features_names]).sum(axis=0))
+
+        print('number of infs in returns')
+        print(np.isinf(df_ret[strats]).sum(axis=0))
 
         print('number of nans in advanced features')
         print(np.isnan(df_ret[features_names]).sum(axis=0))
@@ -185,14 +199,6 @@ class FeaturesAssembler(AbstractAssembler):
         ret = ret_df.values
 
         feat = df_ret[features_names].values
-
-        if normalize:
-            print('normalizing')
-            feat[feat == -np.inf] = 0
-            feat[feat == np.inf] = 0
-            feat_stds = np.nanstd(feat, axis=0)
-            feat_means = np.nanmean(feat, axis=0)
-            feat = (feat - feat_means) / feat_stds
 
         T = df.index.size
         N = df.columns.size
