@@ -119,7 +119,7 @@ class FeaturesAssembler(AbstractAssembler):
         N = df.columns.size
 
         if features_extraction:
-            features = np.zeros([T, len(features_names)], np.float32)
+            features = np.zeros([T, 6*len(features_names)], np.float32)
         else:
             features = np.zeros([T, clustering_size, len(features_names)], np.float32)
 
@@ -134,12 +134,17 @@ class FeaturesAssembler(AbstractAssembler):
             t_n = min(max(t - clustering_size, 0), T)
             F = feat[t_n: t, :]
             X_back = ret[t_n: t, :]
-            F_mean = np.mean(F, axis=0)
-
 
             if features_extraction:
-                features[t: t + 1] = F_mean
-                #features[t: t + 1] = np.transpose(np.concatenate((mean, mat_corr.flatten(), F_mean), axis=0))
+                F_mean = np.mean(F, axis=0)
+                F_quant_zero = np.quantile(F, 0., axis=0)
+                F_quant_twenty_five = np.quantile(F, 0.25, axis=0)
+                F_quant_fifty = np.quantile(F, 0.5, axis=0)
+                F_quant_seventy_five = np.quantile(F, 0.75, axis=0)
+                F_quant_hundred = np.quantile(F, 1., axis=0)
+                features[t: t + 1] = np.concatenate(
+                    (F_mean, F_quant_zero, F_quant_twenty_five, F_quant_fifty, F_quant_seventy_five, F_quant_hundred),
+                    axis=0)
             else:
                 features[t: t + 1] = F
 

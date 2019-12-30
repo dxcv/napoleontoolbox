@@ -1,4 +1,5 @@
 from statsmodels.tsa.stattools import adfuller
+from scipy import stats
 
 def testStationarityDickeyFuller(X, confidenceLevel = '1%', displayResult = False):
     result = adfuller(X)
@@ -19,4 +20,9 @@ def testStationarityDickeyFuller(X, confidenceLevel = '1%', displayResult = Fals
         raise Exception('Threshold '+confidenceLevel+' not available')
 
 
-
+def testT(X,Y, alpha = 0.05):
+    t,p = stats.ttest_ind(X,Y, equal_var = False)
+    if p > alpha:
+        return True
+    else:
+        return False
