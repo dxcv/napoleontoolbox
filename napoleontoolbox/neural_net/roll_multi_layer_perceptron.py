@@ -44,6 +44,7 @@ import pandas as pd
 import torch
 import torch.nn
 import numpy as np
+import torch.nn.functional as F
 
 from sklearn.metrics import mean_squared_error
 
@@ -226,7 +227,7 @@ class MultiLayerPerceptron(BaseNeuralNet):
 
         self.set_data(X=X, y=y, x_type=x_type, y_type=y_type)
         layers_list = []
-
+        self.n_layers =  len(layers)
         # Set input layer
         input_size = self.N
         for output_size in layers:
@@ -241,6 +242,7 @@ class MultiLayerPerceptron(BaseNeuralNet):
         # Set output layer
         layers_list += [torch.nn.Linear(input_size, self.M, bias=bias)]
         self.layers = torch.nn.ModuleList(layers_list)
+
 
         # Set activation functions
         # Set activation functions
@@ -259,9 +261,11 @@ class MultiLayerPerceptron(BaseNeuralNet):
     def forward(self, x):
         """ Forward computation. """
         x = self.drop(x)
-
         for name, layer in enumerate(self.layers):
-            x = self.activation(layer(x))
+            if name == (self.n_layers) and self.activation.__name__ == F.relu.__name__:
+                x = layer(x)
+            else:
+                x = self.activation(layer(x))
 
         return x
 
@@ -340,8 +344,7 @@ class _RollingBasis:
             self.idx = index
 
     # TODO : fix callable method to overwritten problem with torch.nn.Module
-    def __call__(self, train_period, test_period, start=0, end=None,
-                 roll_period=None, eval_period=None, batch_size=64, epochs=1):
+    def __call__(self, train_period, test_period, start=0, end=None,  epochs=1):
         """ Callable method to set target features data, and model.
         Parameters
         ----------
@@ -369,13 +372,11 @@ class _RollingBasis:
         # Set size of subperiods
         self.n = train_period
         self.s = test_period
-        self.r = test_period if roll_period is None else roll_period
-        self.b = batch_size
         self.e = epochs
 
         # Set boundary of period
         self.T = self.T if end is None else min(self.T, end)
-        self.t = max(self.n - self.r, min(start, self.T - self.n - self.s))
+        self.t = max(self.n - self.s, start)
 
         return self
 
@@ -393,42 +394,26 @@ class _RollingBasis:
         """ Incrementing method. """
         # TODO : to finish
         # Time forward incrementation
-        self.t += self.r
+        self.t += self.s
 
         if self.t > (self.T-1):
             raise StopIteration
 
         if self.t + self.s > self.T:
             # output to train would need the future : we do not retrain the networl
-            return slice(self.t - self.r, self.t), slice(self.t, self.T)
-
-
-
+            return slice(self.t - self.n, self.t), slice(self.t, self.T)
 
         # TODO : Set training part in an other method
         # Run epochs
         for epoch in range(self.e):
-            loss_epoch = 0.
-            # Run batchs
-            b = int((self.n-self.s)/2)
-            for t in range(self.t - self.n, self.t-self.s, b):
-                # Set new train periods
-                s = min(t + b, self.t)
-                if s >= self.t - 1:
-                    continue
-                train_slice = slice(t, s)
-                #print('train_slice '+str(train_slice))
-                # Train model
-                lo = self._train(
-                    X=self.X[train_slice],
-                    y=self.f(self.y[train_slice]),
-                )
-                loss_epoch += lo.item()
-
-            self.loss_train += [loss_epoch]
-
+            train_slice = slice(self.t - self.n, self.t-self.s)
+            lo = self._train(
+                X=self.X[train_slice],
+                y=self.f(self.y[train_slice]),
+            )
+            self.loss_train += [lo.item()]
         # Set eval and test periods
-        return slice(self.t - self.r, self.t), slice(self.t, self.t + self.s)
+        return slice(self.t - self.n, self.t), slice(self.t, self.t + self.s)
 
     def run(self, backtest_plot=True, backtest_kpi=True, figsize=(9, 6)):
         """ Run neural network model.
@@ -570,9 +555,7 @@ class RollMultiLayerPerceptron(MultiLayerPerceptron, _RollingBasis):
                                       x_type=x_type, y_type=y_type,
                                       activation_kwargs=activation_kwargs)
 
-    def set_roll_period(self, train_period, test_period, start=0, end=None,
-                        roll_period=None, eval_period=None, batch_size=64,
-                        epochs=1):
+    def set_roll_period(self, train_period, test_period, start=0, end=None,epochs=1):
         """ Callable method to set target features data, and model.
         Parameters
         ----------
@@ -599,8 +582,7 @@ class RollMultiLayerPerceptron(MultiLayerPerceptron, _RollingBasis):
         """
         return _RollingBasis.__call__(
             self, train_period=train_period, test_period=test_period,
-            start=start, end=end, roll_period=roll_period,
-            eval_period=eval_period, batch_size=batch_size, epochs=epochs
+            start=start, end=end, epochs=epochs
         )
 
     def _train(self, X, y):
@@ -644,10 +626,9 @@ class RollMultiLayerPerceptron(MultiLayerPerceptron, _RollingBasis):
             # Compute prediction on eval and test set
             self.y_eval[eval_slice] = self.sub_predict(self.X[eval_slice])
             test_prediction = self.sub_predict(self.X[test_slice])
+            if abs(test_prediction.numpy().sum())<= 1e-6:
+                print('null prediction, investigate')
             self.y_test[test_slice] = test_prediction
-            # getting the features importance
-
-            # Update loss function of eval set and test set
 
             ev = self.y_eval[eval_slice]
             ev_true = self.y[eval_slice]
