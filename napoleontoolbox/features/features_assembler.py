@@ -30,20 +30,24 @@ class AbstractAssembler(ABC):
 
 
 class FeaturesAssembler(AbstractAssembler):
-    def reassembleAdvancedFeaturesForClusterization(self, normalize = True, stationarize = True, clustering_size = 21, simple = False, features_extraction = True):
-        df = pd.read_pickle(self.root + self.returns_path)
 
-        df['Date'] = pd.to_datetime(df['Date'])
-        df = df.set_index('Date')
-        strats = [col for col in list(df.columns) if col != 'Date']
+    def reassembleAdvancedFeaturesForClusterization(self, feature_type, n_past_features = 21, simple = True):
 
-        df = df.fillna(method='ffill')
+        if (feature_type is features_type.FeaturesType.HISTORY or feature_type is features_type.FeaturesType.HISTORY_ADVANCED) and n_past_features is None:
+            return
 
-        advanced_features = pd.read_pickle(self.root + self.features_path)
-        features_names = [col for col in list(advanced_features.columns) if col!='Date']
+        if (feature_type is features_type.FeaturesType.STANDARD or feature_type is features_type.FeaturesType.STANDARD_ADVANCED) and n_past_features is not None:
+            return
+
+        print('feature_type' + str(feature_type))
+        print('n_past_features' + str(n_past_features))
 
 
-        advanced_features['Date'] = pd.to_datetime(advanced_features['Date'])
+        np.random.seed(0)
+        torch.manual_seed(0)
+
+        advanced_features, features_names = self.preprocessFeature()
+        df, strats, strat_features_names = self.preprocessReturns()
 
         # quotes_df=quotes_df.sort_values(by='date', ascending=True)
         # quotes_df.head()
@@ -56,45 +60,17 @@ class FeaturesAssembler(AbstractAssembler):
 
         # Computationnal period (default 1 year)
 
-        np.random.seed(0)
-        torch.manual_seed(0)
 
         ##===================##
         ##  Setting targets  ##
         ##===================##
 
-        #
-        df_bis = df.copy()
-        # df_ret = df_bis.pct_change().fillna(0.)
-        # ret = df_ret.values
 
         print('merging')
-        df_bis = pd.merge(df_bis, advanced_features, how='left', on=['Date'])
+        df_ret = pd.merge(df, advanced_features, how='left', on=['Date'])
 
-        print('merging done')
-        df_bis.index = df_bis['Date']
-        df_bis = df_bis.drop(columns=['Date'])
-        print('return')
-
-        df_bis = df_bis.fillna(method='ffill').fillna(method='bfill')
-        df_ret = df_bis.copy()
-
-        print('computing returns')
-        for col in strats:
-            print(col + str(len(df_bis.columns)))
-            df_ret[col] = df_bis[col].pct_change().fillna(0.)
-
-        if stationarize:
-            print('stationarizing features')
-            for col in features_names:
-                print(col + str(len(df_bis.columns)))
-                df_ret[col] = df_bis[col].pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.)
-
-        if normalize:
-            print('normalizing features') # careful : forward looking bias
-            for col in features_names:
-                print(col + str(len(df_bis.columns)))
-                df_ret[col] = (df_ret[col] - df_ret[col].mean()) / df_ret[col].std(ddof=0)
+        df_ret = df_ret.replace([np.inf, -np.inf], np.nan)
+        df_ret=df_ret.fillna(0.)
 
         print('number of infs in advanced features')
         print(np.isinf(df_ret[features_names]).sum(axis=0))
@@ -109,59 +85,66 @@ class FeaturesAssembler(AbstractAssembler):
         print(np.isnan(df_ret[strats]).sum(axis=0))
 
         if simple:
-            return strats, features_names, df_ret
+            return strats, strat_features_names, features_names, df_ret
+
 
         ret_df = df_ret[strats]
         ret = ret_df.values
 
-        feat = df_ret[features_names].values
+        feat = df_ret[strat_features_names + features_names].values
 
         T = df.index.size
-        N = df.columns.size
+        N = len(strats)
 
-        if features_extraction:
-            features = np.zeros([T, 6*len(features_names)], np.float32)
-        else:
-            features = np.zeros([T, clustering_size, len(features_names)], np.float32)
+        all_features_length = len(features_names) + len(strat_features_names)
+
+        if feature_type is features_type.FeaturesType.HISTORY_ADVANCED:
+            features = np.zeros([T, n_past_features, N + all_features_length], np.float32)
+            predictor_names = strats  + features_names + strat_features_names
+
+        if feature_type is features_type.FeaturesType.HISTORY:
+            features = np.zeros([T, n_past_features, N], np.float32)
 
 
-        # for t in range(max(n_past_features, s), T - s):
-        for t in range(clustering_size, T):
-            np.random.seed(0)
-            torch.manual_seed(0)
-            # the output to predict cannot be computed in the future
-            # we still assemble the predictors
-            # Set input data
-            t_n = min(max(t - clustering_size, 0), T)
-            F = feat[t_n: t, :]
-            X_back = ret[t_n: t, :]
+        if feature_type is features_type.FeaturesType.HISTORY or feature_type is features_type.FeaturesType.HISTORY_ADVANCED:
+            for t in range(n_past_features, T):
+                np.random.seed(0)
+                torch.manual_seed(0)
+                # the output to predict cannot be computed in the future
+                # we still assemble the predictors
+                # Set input data
+                t_n = min(max(t - n_past_features, 0), T)
+                F = feat[t_n: t, :]
+                X_back = ret[t_n: t, :]
 
-            if features_extraction:
-                F_mean = np.mean(F, axis=0)
-                F_quant_zero = np.quantile(F, 0., axis=0)
-                F_quant_twenty_five = np.quantile(F, 0.25, axis=0)
-                F_quant_fifty = np.quantile(F, 0.5, axis=0)
-                F_quant_seventy_five = np.quantile(F, 0.75, axis=0)
-                F_quant_hundred = np.quantile(F, 1., axis=0)
-                features[t: t + 1] = np.concatenate(
-                    (F_mean, F_quant_zero, F_quant_twenty_five, F_quant_fifty, F_quant_seventy_five, F_quant_hundred),
-                    axis=0)
-            else:
-                features[t: t + 1] = F
+                if feature_type is features_type.FeaturesType.HISTORY_ADVANCED or feature_type is features_type.FeaturesType.HISTORY:
+                    if feature_type is features_type.FeaturesType.HISTORY_ADVANCED:
+                        X_back = np.concatenate((X_back, F), axis=1)
+                        predictor_names = features_names + strat_features_names
+                    if feature_type is features_type.FeaturesType.HISTORY:
+                        predictor_names = strats
 
-            if t % 500 == 0:
-                print('{:.2%}'.format(t / T))
-            # we compute the utility output to predict only if not in future
+                    features[t: t + 1] = X_back
 
-        print('saved files')
-        print('number of nan/infinity features')
-        print(np.isnan(features).sum(axis=0).sum())
-        print(np.isinf(features).sum(axis=0).sum())
-        if np.isnan(features).sum(axis=0).sum() > 0:
-            raise Exception('nan values for assembled features')
-        if np.isinf(features).sum(axis=0).sum() > 0:
-            raise Exception('inf values for assembled features')
-        return strats, features_names, features
+                if t % 500 == 0:
+                    print('{:.2%}'.format(t / T))
+                # we compute the utility output to predict only if not in future
+        else :
+            if feature_type is features_type.FeaturesType.STANDARD_ADVANCED:
+
+                #features = np.zeros([T, N + all_features_length], np.float32)
+                features = feat
+                predictor_names =  features_names + strat_features_names
+
+            if feature_type is features_type.FeaturesType.STANDARD:
+                #features = np.zeros([T, N], np.float32)
+                features = ret
+                predictor_names = strats
+
+        return  predictor_names, features
+
+
+
 
 
     def preprocessFeature(self):
@@ -321,10 +304,10 @@ class FeaturesAssembler(AbstractAssembler):
 
     def assembleFeature(self, feature_type, n_past_features):
 
-        if (feature_type is not features_type.FeaturesType.HISTORY or feature_type is not features_type.FeaturesType.HISTORY_ADVANCED) and n_past_features is None:
+        if (feature_type is features_type.FeaturesType.HISTORY or feature_type is features_type.FeaturesType.HISTORY_ADVANCED) and n_past_features is None:
             return
 
-        if (feature_type is not features_type.FeaturesType.STANDARD or feature_type is not features_type.FeaturesType.STANDARD_ADVANCED) and n_past_features is not None:
+        if (feature_type is features_type.FeaturesType.STANDARD or feature_type is features_type.FeaturesType.STANDARD_ADVANCED) and n_past_features is not None:
             return
 
         print('feature_type' + str(feature_type))
@@ -379,7 +362,7 @@ class FeaturesAssembler(AbstractAssembler):
         feat = df_ret[strat_features_names + features_names].values
 
         T = df.index.size
-        N = df.columns.size
+        N = len(strats)
 
         all_features_length = len(features_names) + len(strat_features_names)
 
@@ -405,6 +388,11 @@ class FeaturesAssembler(AbstractAssembler):
                 if feature_type is features_type.FeaturesType.HISTORY_ADVANCED or feature_type is features_type.FeaturesType.HISTORY:
                     if feature_type is features_type.FeaturesType.HISTORY_ADVANCED:
                         X_back = np.concatenate((X_back, F), axis=1)
+                        predictor_names = features_names + strat_features_names
+                    if feature_type is features_type.FeaturesType.HISTORY:
+                        predictor_names = strats
+
+
                     features[t: t + 1] = X_back
 
                 if t % 500 == 0:

@@ -40,16 +40,17 @@ class AbstractRunner(ABC):
 class SimpleRunner(AbstractRunner):
     def runTrial(self, saver, seed, sup, layers, epochs, n_past_features, n, s, feature_type, activation_string, convolution):
 
-        if (feature_type is not features_type.FeaturesType.HISTORY or feature_type is not features_type.FeaturesType.HISTORY_ADVANCED) and n_past_features is None:
+        if (feature_type is features_type.FeaturesType.HISTORY or feature_type is features_type.FeaturesType.HISTORY_ADVANCED) and n_past_features is None:
             return
 
-        if (feature_type is not features_type.FeaturesType.STANDARD or feature_type is not features_type.FeaturesType.STANDARD_ADVANCED) and n_past_features is not None:
+        if (feature_type is features_type.FeaturesType.STANDARD or feature_type is features_type.FeaturesType.STANDARD_ADVANCED) and n_past_features is not None:
             return
 
 
         param = '_' + str(seed) + '_' + str(n_past_features) + '_' + str(n) + '_' + str(layers) + '_' + feature_type.name + '_' + str(
             epochs) + '_' + str(s) + '_' + activation_string + '_' + str(convolution)
         param = param.replace(' ', '')
+        param = param.replace('.', '')
         param = param.replace(',', '_')
         param = param.strip()
 
@@ -136,11 +137,16 @@ class SimpleRunner(AbstractRunner):
 
         print(np.count_nonzero(~np.isnan(X)))
 
+        X = np.float32(X)
+        y = np.float32(y)
+
         neural_net_precision = None
         if X.dtype == np.float64:
             neural_net_precision = torch.float64
         if X.dtype == np.float32:
             neural_net_precision = torch.float32
+
+
 
         activation_function = None
         if activation_string == 'sigmoid':
@@ -203,6 +209,7 @@ class SimpleRunner(AbstractRunner):
         savingKey = savingKey.replace(']', '')
         savingKey = savingKey.replace(',', '')
         savingKey = savingKey.replace(' ', '')
+        savingKey = savingKey.replace('.', '')
         # savingKey = savingKey.replace('_','')
         savingKey = 'T_' + savingKey
 
