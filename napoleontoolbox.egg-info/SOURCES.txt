@@ -22,6 +22,7 @@ napoleontoolbox/display/graph.py
 napoleontoolbox/display/table.py
 napoleontoolbox/features/__init__.py
 napoleontoolbox/features/features_assembler.py
+napoleontoolbox/features/features_type.py
 napoleontoolbox/features/utility_supervision.py
 napoleontoolbox/movie/__init__.py
 napoleontoolbox/movie/movie_maker.py

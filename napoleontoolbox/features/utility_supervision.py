@@ -114,7 +114,7 @@ class UtilitySuperviser(AbstractAssembler):
         # features = np.zeros([T, N * N], np.float32)
 
         utility_size = 6
-        result = np.zeros([T, N, utility_size], np.float32)
+        result = np.zeros([T, N, utility_size], np.float64)
 
         def process(series):
             # True if less than 50% of obs. are constant

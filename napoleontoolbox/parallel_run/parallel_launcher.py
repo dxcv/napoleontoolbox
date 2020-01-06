@@ -5,28 +5,27 @@ import sqlite3
 import pandas as pd
 
 from multiprocessing import Pool
+from napoleontoolbox.features import features_type
 
 class ParalleLauncher():
 
-
-    def __init__(self,  db_path, meta_stationarize=[True], meta_normalize=[True], meta_advance_features=[False], meta_advance_signals=[False], meta_history=[False], meta_layers=[[2048,1024,512,256,128,64,32]], convolutions=[0], activations=['relu'], meta_n=[126], meta_seeds=[0], epochss=[1], ss=[21], meta_n_past_features=[21], utilities=['f_drawdown']):
-        print('Epochs ' + str(epochss))
-        print('Seed ' + str(meta_seeds))
-        print('Training period size ' + str(meta_n))
-        print('Neural net layout ' + str(meta_layers))
-        print('Stationarize ' + str(meta_stationarize))
-        print('Normalize ' + str(meta_normalize))
-        print('Advanced ' + str(meta_advance_features))
-        print('Signals ' + str(meta_advance_signals))
-        print('History ' + str(meta_history))
-        print('Normalized ' + str(meta_normalize))
-        print('Rebalancing ' + str(ss))
-        print('Activation ' + str(activations))
-        print('Convolution' + str(convolutions))
-        print('Utility' + str(utilities))
-        print('n past features ' + str(meta_n_past_features))
-        print('Rebalancing ' + str(ss))
-
+    def __init__(self,  db_path, meta_features_types=[features_type.FeaturesType.STANDARD_ADVANCED], meta_layers=[[2048,1024,512,256,128,64,32]], convolutions=[0], activations=['relu'], meta_n=[126], meta_seeds=[0], epochss=[1], ss=[21], meta_n_past_features=[21], utilities=['f_drawdown']):
+        # print('Epochs ' + str(epochss))
+        # print('Seed ' + str(meta_seeds))
+        # print('Training period size ' + str(meta_n))
+        # print('Neural net layout ' + str(meta_layers))
+        # print('Stationarize ' + str(meta_stationarize))
+        # print('Normalize ' + str(meta_normalize))
+        # print('Advanced ' + str(meta_advance_features))
+        # print('Signals ' + str(meta_advance_signals))
+        # print('History ' + str(meta_history))
+        # print('Normalized ' + str(meta_normalize))
+        # print('Rebalancing ' + str(ss))
+        # print('Activation ' + str(activations))
+        # print('Convolution' + str(convolutions))
+        # print('Utility' + str(utilities))
+        # print('n past features ' + str(meta_n_past_features))
+        # print('Rebalancing ' + str(ss))
         self.args = []
         self.counter = 1
         for utility in utilities:
@@ -35,19 +34,14 @@ class ParalleLauncher():
                     for activation in activations:
                         for s in ss:
                             for epochs in epochss:
-                                for normalize in meta_normalize:
-                                    for stationarize in meta_stationarize:
-                                        for whole_history in meta_history:
-                                            for advance_feature in meta_advance_features:
-                                                for advance_signal in meta_advance_signals:
-                                                    for seed in meta_seeds:
-                                                        for layers in meta_layers:
-                                                            for n in meta_n:
-                                                                self.args.append((self,seed, utility, layers, epochs,
-                                                                             n_past_features, n, s, whole_history,
-                                                                             advance_feature, advance_signal, stationarize, normalize,
-                                                                             activation, convolution))
-                                                                self.counter = self.counter + 1
+                                for feature_type in meta_features_types:
+                                    for seed in meta_seeds:
+                                        for layers in meta_layers:
+                                            for n in meta_n:
+                                                self.args.append((self,seed, utility, layers, epochs,
+                                                             n_past_features, n, s, feature_type,
+                                                             activation, convolution))
+                                                self.counter = self.counter + 1
 
         self.db_path = db_path
         self.runs = []

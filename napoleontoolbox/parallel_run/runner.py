@@ -13,7 +13,7 @@ from napoleontoolbox.neural_net import roll_multi_layer_lstm
 
 from napoleontoolbox.neural_net import roll_multi_layer_perceptron
 from napoleontoolbox.boosted_trees import roll_lightgbm
-
+from napoleontoolbox.features import features_type
 
 from napoleontoolbox.utility import weights
 
@@ -38,10 +38,16 @@ class AbstractRunner(ABC):
 
 
 class SimpleRunner(AbstractRunner):
-    def runTrial(self, saver, seed, sup, layers, epochs, n_past_features, n, s, whole_history, advance_feature,
-                 advance_signal,stationarize, normalize, activation_string, convolution):
-        param = '_' + str(seed) + '_' + str(n_past_features) + '_' + str(n) + '_' + str(layers) + '_' + str(
-            whole_history) + '_' + str(advance_feature) + '_' + str(advance_signal) + '_' + str(stationarize) + '_' + str(normalize) + '_' + str(
+    def runTrial(self, saver, seed, sup, layers, epochs, n_past_features, n, s, feature_type, activation_string, convolution):
+
+        if (feature_type is not features_type.FeaturesType.HISTORY or feature_type is not features_type.FeaturesType.HISTORY_ADVANCED) and n_past_features is None:
+            return
+
+        if (feature_type is not features_type.FeaturesType.STANDARD or feature_type is not features_type.FeaturesType.STANDARD_ADVANCED) and n_past_features is not None:
+            return
+
+
+        param = '_' + str(seed) + '_' + str(n_past_features) + '_' + str(n) + '_' + str(layers) + '_' + feature_type.name + '_' + str(
             epochs) + '_' + str(s) + '_' + activation_string + '_' + str(convolution)
         param = param.replace(' ', '')
         param = param.replace(',', '_')
@@ -51,8 +57,7 @@ class SimpleRunner(AbstractRunner):
         print(param)
 
         meArg = (
-            seed, sup, param, layers, epochs, n_past_features, n, s, whole_history, advance_feature, advance_signal,
-            stationarize, normalize,
+            seed, sup, param, layers, epochs, n_past_features, n, s, feature_type,
             activation_string, convolution)
 
         supervisors = {}
@@ -78,9 +83,12 @@ class SimpleRunner(AbstractRunner):
         np.random.seed(seed)
         torch.manual_seed(seed)
         # Set data
+
+        whole_history = (feature_type is features_type.FeaturesType.HISTORY or feature_type is features_type.FeaturesType.HISTORY_ADVANCED)
+
+
         features = np.load(
-            self.root + self.user + '_' + str(stationarize) + '_' + str(normalize) + '_' + str(whole_history) + '_' + str(
-                advance_feature) + '_' + str(n_past_features) + self.features_path)
+            self.root + self.user + '_' + feature_type.name+ '_' + str(n_past_features) + self.features_path)
 
         # X = features[s:-s]
         # y = result[s:-s, :, supervisors[sup]]
@@ -128,6 +136,12 @@ class SimpleRunner(AbstractRunner):
 
         print(np.count_nonzero(~np.isnan(X)))
 
+        neural_net_precision = None
+        if X.dtype == np.float64:
+            neural_net_precision = torch.float64
+        if X.dtype == np.float32:
+            neural_net_precision = torch.float32
+
         activation_function = None
         if activation_string == 'sigmoid':
             activation_function = torch.sigmoid
@@ -148,8 +162,8 @@ class SimpleRunner(AbstractRunner):
                 hidden_size=hidden_size,
                 num_layers=num_layers,
                 # nn.Softmax/nn.Softmin can be good activations for this problem
-                x_type=torch.float32,
-                y_type=torch.float32
+                x_type=neural_net_precision,
+                y_type=neural_net_precision
                 # activation_kwargs={'dim':1} # Parameter needed for nn.Softmax/nn.Softmin
             )
             tm.set_optimizer(nn.MSELoss, torch.optim.Adam, lr=self.lr, betas=(0.9, 0.999), amsgrad=True)
@@ -160,8 +174,8 @@ class SimpleRunner(AbstractRunner):
                 y=y,
                 layers=layers,
                 activation=activation_function,  # nn.Softmax/nn.Softmin can be good activations for this problem
-                x_type=torch.float32,
-                y_type=torch.float32,
+                x_type=neural_net_precision,
+                y_type=neural_net_precision,
                 # activation_kwargs={'dim':1} # Parameter needed for nn.Softmax/nn.Softmin
             )
             tm.set_optimizer(nn.MSELoss, torch.optim.Adam, lr=self.lr, betas=(0.9, 0.999), amsgrad=True)
@@ -194,7 +208,6 @@ class SimpleRunner(AbstractRunner):
 
 
         saver.saveResults(savingKey, portfolio, weight_mat)
-        print('saved ', seed, sup, param, layers, epochs, n_past_features, n, s, advance_feature, advance_signal,
-              stationarize, normalize, activation_string, convolution)
+        print('saved ', seed, sup, param, layers, epochs, n_past_features, n, s, feature_type, activation_string, convolution)
 
 
