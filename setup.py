@@ -53,9 +53,9 @@ build_requires = [
 
 setup(
     name='napoleontoolbox',
-    version='1.0.7',
+    version='1.1.2',
     packages=find_packages(),
-    download_url='https://github.com/stef564/napoleontoolbox/archive/1.0.7.tar.gz',
+    download_url='https://github.com/stef564/napoleontoolbox/archive/1.1.2.tar.gz',
     author='Napoleon Group',
     author_email='dsi@napoleonx.ai',
     description='Dashboard for financial market data',

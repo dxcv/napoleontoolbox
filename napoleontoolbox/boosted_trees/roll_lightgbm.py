@@ -20,8 +20,11 @@ import torch
 # from fynance.models.xgb import XGBData
 
 from napoleontoolbox.backtest.dynamic_plot_backtest import DynaPlotBackTest
-
+from sklearn.metrics import mean_squared_error
 import lightgbm as lgb
+from sklearn.multioutput import MultiOutputRegressor
+import xgboost as xgb
+import numpy as np
 
 import shap
 
@@ -54,9 +57,6 @@ from torch.autograd import Variable
 # Local packages
 
 __all__ = ['RollLightGbm']
-
-
-
 
 
 class _RollingBasis:
@@ -167,7 +167,6 @@ class _RollingBasis:
             # output to train would need the future : we do not retrain the networl
             return slice(self.t - self.r, self.t), slice(self.t, self.T)
 
-
         training_range = range(self.t - self.n, self.t-self.s)
         loss_batch = self._train(
             X=self.X[training_range],
@@ -175,20 +174,9 @@ class _RollingBasis:
         )
         self.loss_train += [loss_batch]
 
-        # for t in range(self.t - self.n, self.t-self.s, self.b):
-        #     # Set new train periods
-        #     s = min(t + self.b, self.t)
-        #     if s >= self.t - 1:
-        #         continue
-        #     train_slice = slice(t, s)
-        #     #print('train_slice '+str(train_slice))
-        #     # Train model
-        #     loss_epoch += lo.item()
-        #
-        #     self.loss_train += [loss_epoch]
+        return slice(self.t - self.n, self.t), slice(self.t, self.t + self.s)
 
-        # Set eval and test periods
-        return slice(self.t - self.r, self.t), slice(self.t, self.t + self.s)
+
 
     def run(self, backtest_plot=True, backtest_kpi=True, figsize=(9, 6)):
         """ Run neural network model.
@@ -297,6 +285,10 @@ class RollLightGbm(_RollingBasis):
         self.num_boost_round = num_boost_round
         self.early_stopping_rounds = early_stopping_rounds
         self.models = [None] * y.shape[1]
+        # fitting
+        self.multioutputregressor = MultiOutputRegressor(xgb.XGBRegressor(objective='reg:squarederror'))
+
+
 
     def set_roll_period(self, train_period, test_period, start=0, end=None,
                         roll_period=None, eval_period=None):
@@ -331,67 +323,13 @@ class RollLightGbm(_RollingBasis):
         )
 
     def _train(self, X, y):
-
-        params = {
-            "objective": "regression",
-            "learning_rate": 0.05,
-            "metric": "rmse",
-#            "min_data": 1,
-            'verbose': -1
-        }
-
-        for output in range(y.shape[1]):
-            # lgb training
-
-            y_train = y[:,output]
-            prev_trained_model = self.models[output]
-
-
-            # X_half_1 = X[:int(X.shape[0] / 2)]
-            # X_half_2 = X[int(X.shape[0] / 2):]
-            #
-            # y_half_1 = y_train[:int(X.shape[0] / 2)]
-            # y_half_2 = y_train[int(X.shape[0] / 2):]
-            #
-            # d_half_1 = lgb.Dataset(X_half_1, label=y_half_1)
-            # d_half_2 = lgb.Dataset(X_half_2, label=y_half_2)
-            #
-            # watchlist_1 = [d_half_1, d_half_2]
-            #
-            #
-            # if prev_trained_model is None:
-            #     model = lgb.train(params, train_set=d_half_1, num_boost_round=self.num_boost_round, valid_sets=watchlist_1)
-            # else :
-            #     model = lgb.train(params, train_set=d_half_1, num_boost_round=self.num_boost_round, valid_sets=watchlist_1,
-            #                       init_model=prev_trained_model)
-
-
-            lgb_dataset = lgb.Dataset(X, label=y_train)#, categorical_feature=categorical_features, free_raw_data=False)
-                # to watch if
-            watchlist = [lgb_dataset]
-            prev_trained_model = self.models[output]
-            if prev_trained_model is None:
-                model = lgb.train(params, train_set=lgb_dataset, num_boost_round=self.num_boost_round, valid_sets=watchlist)
-            else:
-                model = lgb.train(params, train_set=lgb_dataset, num_boost_round=self.num_boost_round, valid_sets=watchlist,
-                                  init_model=prev_trained_model)
-
-            self.models[output] = model
-
-
+        # predicting
+        self.multioutputregressor.fit(X,y)
 
 
     def sub_predict(self, X):
         """ Predict. """
-        if len(self.models) != self.y.shape[1]:
-            raise RuntimeError('light gbm have not been properly trained')
-        # lgb prediction
-        predictions = []
-        for model in self.models :
-            y_pred =  model.predict(X)# num_iteration=self.model.best_iteration)
-            predictions.append(y_pred)
-        preds = np.array(predictions).T
-        #print('averaged predictions '+str(preds.mean().mean()))
+        preds = self.multioutputregressor.predict(X)
         return preds
 
     def set_data(self, X, y, x_type=None, y_type=None):
@@ -430,37 +368,62 @@ class RollLightGbm(_RollingBasis):
         elif isinstance(X, pd.DataFrame):
             # TODO : Verify memory efficiancy
             return X.values
-
-
         else:
             raise ValueError('Unkwnown data type: {}'.format(type(X)))
 
-def eval_predictor_importance(self, features, features_names):
-        explainer_shap = shap.GradientExplainer(model=self,
-                                            data=features)
-        # Fit the explainer on a subset of the data (you can try all but then gets slower)
-        shap_values = explainer_shap.shap_values(X=features,
-                                                 ranked_outputs=True)
 
-        predictors_shap_values = shap_values[0]
-        predictors_feature_order = np.argsort(np.sum(np.mean(np.abs(predictors_shap_values), axis=0), axis=0))
 
-        predictors_left_pos = np.zeros(len(predictors_feature_order))
+    def unroll(self):
+        for eval_slice, test_slice in self:
+            # Compute prediction on eval and test set
+            self.y_eval[eval_slice] = self.sub_predict(self.X[eval_slice])
+            test_prediction = self.sub_predict(self.X[test_slice])
+            self.y_test[test_slice] = test_prediction
 
-        predictors_class_inds = np.argsort([-np.abs(predictors_shap_values[i]).mean() for i in range(len(predictors_shap_values))])
-        for i, ind in enumerate(predictors_class_inds):
-            predictors_global_shap_values = np.abs(predictors_shap_values[ind]).mean(0)
-            predictors_left_pos += predictors_global_shap_values[predictors_feature_order]
+            # Update loss function of eval set and test set
+            ev = self.y_eval[eval_slice]
+            ev_true = self.y[eval_slice]
 
-        predictors_ds = {}
-        predictors_ds['features'] = np.asarray(features_names)[predictors_feature_order]
-        predictors_ds['values'] = predictors_left_pos
-        predictors_features_df = pd.DataFrame.from_dict(predictors_ds)
-        values = {}
-        for index, row in predictors_features_df.iterrows():
-            values[row['features']]=row['values']
+            tt = self.y_test[test_slice]
+            tt_true = self.y[test_slice]
 
-        return values
+            self.loss_eval += [mean_squared_error(ev, ev_true)]
+            self.loss_test += [mean_squared_error(tt, tt_true)]
+
+            # Print loss on current eval and test set
+            pct = (self.t - self.n - self.s) / (self.T - self.n - self.T % self.s)
+            txt = '{:5.2%} is done | '.format(pct)
+            txt += 'Eval loss is {:5.2} | '.format(self.loss_eval[-1])
+            txt += 'Test loss is {:5.2} | '.format(self.loss_test[-1])
+            if np.random.rand()>=0.8:
+                print(txt)
+
+    def eval_predictor_importance(self, features, features_names):
+            explainer_shap = shap.GradientExplainer(model=self,
+                                                data=features)
+            # Fit the explainer on a subset of the data (you can try all but then gets slower)
+            shap_values = explainer_shap.shap_values(X=features,
+                                                     ranked_outputs=True)
+
+            predictors_shap_values = shap_values[0]
+            predictors_feature_order = np.argsort(np.sum(np.mean(np.abs(predictors_shap_values), axis=0), axis=0))
+
+            predictors_left_pos = np.zeros(len(predictors_feature_order))
+
+            predictors_class_inds = np.argsort([-np.abs(predictors_shap_values[i]).mean() for i in range(len(predictors_shap_values))])
+            for i, ind in enumerate(predictors_class_inds):
+                predictors_global_shap_values = np.abs(predictors_shap_values[ind]).mean(0)
+                predictors_left_pos += predictors_global_shap_values[predictors_feature_order]
+
+            predictors_ds = {}
+            predictors_ds['features'] = np.asarray(features_names)[predictors_feature_order]
+            predictors_ds['values'] = predictors_left_pos
+            predictors_features_df = pd.DataFrame.from_dict(predictors_ds)
+            values = {}
+            for index, row in predictors_features_df.iterrows():
+                values[row['features']]=row['values']
+
+            return values
 
 
 

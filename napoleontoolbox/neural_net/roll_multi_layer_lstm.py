@@ -407,40 +407,26 @@ class _RollingBasis:
         """ Incrementing method. """
         # TODO : to finish
         # Time forward incrementation
-        self.t += self.r
+        self.t += self.s
 
         if self.t > (self.T-1):
             raise StopIteration
 
         if self.t + self.s > self.T:
             # output to train would need the future : we do not retrain the networl
-            return slice(self.t - self.r, self.t), slice(self.t, self.T)
-
+            return slice(self.t - self.n, self.t), slice(self.t, self.T)
 
         # TODO : Set training part in an other method
         # Run epochs
         for epoch in range(self.e):
-            loss_epoch = 0.
-            # Run batchs
-
-            for t in range(self.t - self.n, self.t-self.s, self.b):
-                # Set new train periods
-                s = min(t + self.b, self.t)
-                if s >= self.t - 1:
-                    continue
-                train_slice = slice(t, s)
-                #print('train_slice '+str(train_slice))
-                # Train model
-                lo = self._train(
-                    X=self.X[train_slice],
-                    y=self.f(self.y[train_slice]),
-                )
-                loss_epoch += lo.item()
-
-            self.loss_train += [loss_epoch]
-
+            train_slice = slice(self.t - self.n, self.t-self.s)
+            lo = self._train(
+                X=self.X[train_slice],
+                y=self.f(self.y[train_slice]),
+            )
+            self.loss_train += [lo.item()]
         # Set eval and test periods
-        return slice(self.t - self.r, self.t), slice(self.t, self.t + self.s)
+        return slice(self.t - self.n, self.t), slice(self.t, self.t + self.s)
 
     def run(self, backtest_plot=True, backtest_kpi=True, figsize=(9, 6)):
         """ Run neural network model.
