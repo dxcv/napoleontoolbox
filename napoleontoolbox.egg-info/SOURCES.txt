@@ -39,7 +39,6 @@ napoleontoolbox/parallel_run/__init__.py
 napoleontoolbox/parallel_run/features_explainer.py
 napoleontoolbox/parallel_run/features_launcher.py
 napoleontoolbox/parallel_run/parallel_launcher.py
-napoleontoolbox/parallel_run/parallel_saver.py
 napoleontoolbox/parallel_run/runner.py
 napoleontoolbox/rebalancing/__init__.py
 napoleontoolbox/rebalancing/allocation.py

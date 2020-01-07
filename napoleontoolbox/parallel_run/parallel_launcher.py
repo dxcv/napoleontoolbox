@@ -103,7 +103,6 @@ class ParalleLauncher():
             sqliteConnection = sqlite3.connect(self.db_path)
             cursor = sqliteConnection.cursor()
             for i, v in values.iteritems():
-                print("Connected to SQLite")
                 sqlite_insert_query = """INSERT INTO 'parallel_run' ('effective_date', '""" + run + """') VALUES ('""" + str(
                     i) + """','""" + str(v) + """');"""
                 cursor.execute(sqlite_insert_query)
@@ -124,7 +123,6 @@ class ParalleLauncher():
             sqliteConnection = sqlite3.connect(self.db_path)
             cursor = sqliteConnection.cursor()
             for i, v in values.iteritems():
-                print("Connected to SQLite")
                 sqlite_update_query = """UPDATE 'parallel_run' set '""" + run + """' = '""" + str(
                     v) + """' where effective_date = '""" + str(i) + """'"""
                 cursor.execute(sqlite_update_query)
@@ -143,6 +141,7 @@ class ParalleLauncher():
         try:
             table_name = run + '_weight'
             sqliteConnection = sqlite3.connect(self.db_path)
+            weights_df.columns = [col.replace(' ','_') for col in weights_df.columns]
             weights_df.to_sql(name=table_name, con=sqliteConnection)
 
         except sqlite3.Error as error:
@@ -169,7 +168,6 @@ class ParalleLauncher():
         try:
             sqliteConnection = sqlite3.connect(self.db_path, timeout=20)
             cursor = sqliteConnection.cursor()
-            print("Connected to SQLite")
             sqlite_select_query = """SELECT count(*) from parallel_run"""
             cursor.execute(sqlite_select_query)
             totalRows = cursor.fetchone()

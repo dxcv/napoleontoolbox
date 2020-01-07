@@ -88,6 +88,7 @@ class SimpleRunner(AbstractRunner):
         whole_history = (feature_type is features_type.FeaturesType.HISTORY or feature_type is features_type.FeaturesType.HISTORY_ADVANCED)
 
 
+
         features = np.load(
             self.root + self.user + '_' + feature_type.name+ '_' + str(n_past_features) + self.features_path)
 
@@ -114,12 +115,14 @@ class SimpleRunner(AbstractRunner):
                 print('no whole time history with ensembling method')
                 return
             if convolution == 0:
-                print('flattening predictor time series for perceptron')
-                _X = np.empty((X.shape[0], X.shape[1] * X.shape[2]), dtype=np.float32)
-                for l in range(X.shape[0]):
-                    temp = np.transpose(X[l, :, :])
-                    _X[l, :] = temp.flatten()
-                X = _X
+                print('no whole time history with multi layers perceptron')
+                # uncomment if you want multi layers perceptron with full historical backtest
+                # print('flattening predictor time series for perceptron')
+                # _X = np.empty((X.shape[0], X.shape[1] * X.shape[2]), dtype=np.float32)
+                # for l in range(X.shape[0]):
+                #     temp = np.transpose(X[l, :, :])
+                #     _X[l, :] = temp.flatten()
+                # X = _X
 
         if not whole_history:
             if convolution == 1:

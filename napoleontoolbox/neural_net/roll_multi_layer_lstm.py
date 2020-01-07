@@ -20,6 +20,7 @@ import torch
 # from fynance.models.xgb import XGBData
 
 from napoleontoolbox.backtest.dynamic_plot_backtest import DynaPlotBackTest
+from sklearn.metrics import mean_squared_error
 
 import shap
 
@@ -617,4 +618,28 @@ class RollMultiLayerLSTM(MultiLayerLSTM, _RollingBasis):
         return values
 
 
+    def unroll(self):
+        for eval_slice, test_slice in self:
+            # Compute prediction on eval and test set
+            self.y_eval[eval_slice] = self.sub_predict(self.X[eval_slice])
+            test_prediction = self.sub_predict(self.X[test_slice])
+            if abs(test_prediction.numpy().sum())<= 1e-6:
+                print('null prediction, investigate')
+            self.y_test[test_slice] = test_prediction
 
+            ev = self.y_eval[eval_slice]
+            ev_true = self.y[eval_slice]
+
+            tt = self.y_test[test_slice]
+            tt_true = self.y[test_slice]
+
+            self.loss_eval += [mean_squared_error(ev, ev_true)]
+            self.loss_test += [mean_squared_error(tt, tt_true)]
+
+            # Print loss on current eval and test set
+            pct = (self.t - self.n - self.s) / (self.T - self.n - self.T % self.s)
+            txt = '{:5.2%} is done | '.format(pct)
+            txt += 'Eval loss is {:5.2} | '.format(self.loss_eval[-1])
+            txt += 'Test loss is {:5.2} | '.format(self.loss_test[-1])
+            if np.random.rand()>=0.8:
+                print(txt)
